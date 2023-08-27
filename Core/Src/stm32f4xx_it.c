@@ -31,7 +31,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define min	100
+#define max 300
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -304,6 +305,10 @@ void TIM1_UP_TIM10_IRQHandler(void)
   /* USER CODE END TIM1_UP_TIM10_IRQn 0 */
 
   /* USER CODE BEGIN TIM1_UP_TIM10_IRQn 1 */
+	volatile sr = TIM10->SR;
+	if (sr && TIM_SR_UIF) {
+		TIM10->SR &= sr & ~!TIM_SR_UIF;
+	}
 
   /* USER CODE END TIM1_UP_TIM10_IRQn 1 */
 }
@@ -318,7 +323,10 @@ void TIM1_TRG_COM_TIM11_IRQHandler(void)
   /* USER CODE END TIM1_TRG_COM_TIM11_IRQn 0 */
 
   /* USER CODE BEGIN TIM1_TRG_COM_TIM11_IRQn 1 */
-
+	volatile sr = TIM11->SR;
+	if (sr && TIM_SR_UIF) {
+		TIM11->SR &= sr & ~!TIM_SR_UIF;
+	}
   /* USER CODE END TIM1_TRG_COM_TIM11_IRQn 1 */
 }
 

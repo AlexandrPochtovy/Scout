@@ -124,9 +124,14 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM7_Init();
   MX_ADC1_Init();
-  MX_IWDG_Init();
+  //MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
-
+  LL_TIM_CC_EnableChannel(TIM10, LL_TIM_CHANNEL_CH1);
+  LL_TIM_EnableIT_UPDATE(TIM10);
+  LL_TIM_EnableCounter(TIM10);
+  LL_TIM_CC_EnableChannel(TIM11, LL_TIM_CHANNEL_CH1);
+  LL_TIM_EnableIT_UPDATE(TIM11);
+  LL_TIM_EnableCounter(TIM11);
   /* USER CODE END 2 */
 
   /* Infinite loop */
