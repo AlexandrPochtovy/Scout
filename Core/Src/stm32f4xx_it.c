@@ -46,7 +46,16 @@
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
-
+size_t SetPWM (size_t actual, size_t SP, size_t limitLL, size_t limitHH) {
+	size_t value;
+	if ((SP > actual) && (actual < limitHH)) {
+		value = actual + 1;
+	}
+	if ((SP < actual) && (actual > limitLL)) {
+		value = actual - 1;
+	}
+	return value;
+}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -57,7 +66,8 @@
 /* External variables --------------------------------------------------------*/
 
 /* USER CODE BEGIN EV */
-
+extern uint16_t SG90_LR_SP;
+extern uint16_t SG90_UD_SP;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -304,7 +314,11 @@ void TIM1_UP_TIM10_IRQHandler(void)
   /* USER CODE END TIM1_UP_TIM10_IRQn 0 */
 
   /* USER CODE BEGIN TIM1_UP_TIM10_IRQn 1 */
-
+	volatile uint32_t sr = TIM10->SR;
+	if (sr && TIM_SR_UIF) {
+		TIM10->CCR1 = SetPWM(TIM10->CCR1, SG90_LR_SP, SG90_MIN, SG90_MAX);
+		TIM10->SR &= ~TIM_SR_UIF;
+	}
   /* USER CODE END TIM1_UP_TIM10_IRQn 1 */
 }
 
@@ -318,7 +332,11 @@ void TIM1_TRG_COM_TIM11_IRQHandler(void)
   /* USER CODE END TIM1_TRG_COM_TIM11_IRQn 0 */
 
   /* USER CODE BEGIN TIM1_TRG_COM_TIM11_IRQn 1 */
-
+	volatile uint32_t sr = TIM11->SR;
+	if (sr && TIM_SR_UIF) {
+		TIM11->CCR1 = SetPWM(TIM11->CCR1, SG90_UD_SP, SG90_MIN, SG90_MAX);
+		TIM11->SR &= ~TIM_SR_UIF;
+	}
   /* USER CODE END TIM1_TRG_COM_TIM11_IRQn 1 */
 }
 

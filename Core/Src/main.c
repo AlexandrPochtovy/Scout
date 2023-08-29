@@ -52,7 +52,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+uint16_t SG90_LR_SP = 3000;
+uint16_t SG90_UD_SP = 3000;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -103,7 +104,7 @@ int main(void)
   MX_GPIO_Init();
   MX_CRC_Init();
   MX_RNG_Init();
-  MX_RTC_Init();
+  //MX_RTC_Init();
   MX_SPI1_Init();
   MX_SPI3_Init();
   MX_I2C1_Init();
@@ -124,7 +125,7 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM7_Init();
   MX_ADC1_Init();
-  MX_IWDG_Init();
+  //MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
