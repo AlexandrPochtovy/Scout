@@ -53,12 +53,27 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "HW_Init.h"
+#include "Peripherals/I2C/MyI2C.h"
+#include "Peripherals/SPI/MySPI.h"
+#include "Peripherals/USART/MyUSART.h"
+#include "ADXL345/ADXL345.h"
+#include "ITG3205/ITG3205.h"
+#include "QMC5883L/QMC5883L.h"
+#include "BME280/BME280.h"
+#include "INA219/INA219.h"
+#include "TCA9548A/TCA9548A.h"
+#include "SG90/SG90.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
+	typedef struct Camera {
+		uint16_t posH;
+		uint16_t posV;
+		Servo_t srvLR;
+		Servo_t srvUD;
+	} Camera_t;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

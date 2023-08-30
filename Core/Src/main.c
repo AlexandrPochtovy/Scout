@@ -52,8 +52,45 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint16_t SG90_LR_SP = 3000;
-uint16_t SG90_UD_SP = 3000;
+uint8_t i2c1Buff[32] = {0};
+fifo_t i2c1Data = {.buffer = i2c1Buff, .buffer_size = sizeof(i2c1Buff), .bytes_avail = 0,
+                   .head = 0, .tail = 0, .lockState = BUFFER_FREE};
+I2C_IRQ_Conn_t I2CSensors = {.i2c = I2C1,
+                          .status = PORT_FREE,
+                          .step = 0,
+                          .addr = 0x00,
+                          .len = 0,
+                          .mode = I2C_MODE_WRITE,
+                          .buffer = &i2c1Data};
+
+uint8_t i2c3Buff[32] = {0};
+fifo_t i2c3Data = {.buffer = i2c3Buff, .buffer_size = sizeof(i2c3Buff), .bytes_avail = 0,
+                   .head = 0, .tail = 0, .lockState = BUFFER_FREE};
+I2C_IRQ_Conn_t I2CLasers= {.i2c = I2C3,
+                          .status = PORT_FREE,
+                          .step = 0,
+                          .addr = 0x00,
+                          .len = 0,
+                          .mode = I2C_MODE_WRITE,
+                          .buffer = &i2c3Data};
+
+uint8_t usart1b1[255] = {0};
+uint8_t usart1b2[255] = {0};
+fifo_t usart1_TX = {.buffer = usart1b1, .buffer_size = sizeof(usart1b1), .bytes_avail = 0,
+                    .head = 0, .tail = 0, .lockState = BUFFER_FREE};
+fifo_t usart1_RX = {.buffer = usart1b2, .buffer_size = sizeof(usart1b2), .bytes_avail = 0,
+                    .head = 0, .tail = 0, .lockState = BUFFER_FREE};
+USART_Conn_t USART_Orange = {.USART = USART1,
+                             .txStatus = PORT_FREE,
+                             .rxStatus= PORT_FREE,
+                             .txbuffer = &usart1_TX,
+                             .txlen = 0,
+                             .rxbuffer = &usart1_RX,
+                             .rxlen = 0};
+
+
+Camera_t camera;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -127,7 +164,9 @@ int main(void)
   MX_ADC1_Init();
   //MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
-
+	camera.posH = Servo_Init(camera.srvLR, SG90_MIN, SG90_MAX, 2);
+	camera.posV = Servo_Init(camera.srvUD, SG90_MIN, SG90_MAX, 2);
+	HardwareInit();
   /* USER CODE END 2 */
 
   /* Infinite loop */
