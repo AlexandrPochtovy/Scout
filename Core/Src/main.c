@@ -164,9 +164,23 @@ int main(void)
   MX_ADC1_Init();
   //MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
-	camera.posH = Servo_Init(camera.srvLR, SG90_MIN, SG90_MAX, 2);
-	camera.posV = Servo_Init(camera.srvUD, SG90_MIN, SG90_MAX, 2);
+	camera.posH = Servo_Init(&camera.srvLR, SG90_MIN, SG90_MAX, 10);
+	camera.posV = Servo_Init(&camera.srvUD, SG90_MIN, SG90_MAX, 10);
 	HardwareInit();
+
+	camera.posH = SG90_MIN;
+	camera.posV = SG90_MIN;
+	LL_mDelay(1000);
+	camera.posH = SG90_MAX;
+	LL_mDelay(1000);
+	camera.posV = SG90_MAX;
+	LL_mDelay(1000);
+	camera.posH = SG90_MIN;
+	LL_mDelay(1000);
+	camera.posV = SG90_MIN;
+	LL_mDelay(1000);
+	camera.posH = (SG90_MIN + SG90_MAX) / 2;
+	camera.posV = (SG90_MIN + SG90_MAX) / 2;
   /* USER CODE END 2 */
 
   /* Infinite loop */

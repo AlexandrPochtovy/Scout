@@ -54,9 +54,9 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "HW_Init.h"
-#include "Peripherals/I2C/MyI2C.h"
-#include "Peripherals/SPI/MySPI.h"
-#include "Peripherals/USART/MyUSART.h"
+#include "I2C_MiddleLevel/I2C_API.h"
+#include "Peripherals/SPI_LowLevel/SPI_HW.h"
+#include "Peripherals/USART_LowLevel/USART_HW.h"
 #include "ADXL345/ADXL345.h"
 #include "ITG3205/ITG3205.h"
 #include "QMC5883L/QMC5883L.h"

@@ -308,7 +308,9 @@ void TIM1_UP_TIM10_IRQHandler(void)
   /* USER CODE BEGIN TIM1_UP_TIM10_IRQn 1 */
 	volatile uint32_t sr = TIM10->SR;
 	if (sr && TIM_SR_UIF) {
-
+		if (camera.init) {
+			TIM10->CCR1 = ServoSetPWM_IT(&camera.srvLR, TIM10->CCR1, camera.posH);
+		}
 		TIM10->SR &= ~TIM_SR_UIF;
 	}
   /* USER CODE END TIM1_UP_TIM10_IRQn 1 */
@@ -326,7 +328,9 @@ void TIM1_TRG_COM_TIM11_IRQHandler(void)
   /* USER CODE BEGIN TIM1_TRG_COM_TIM11_IRQn 1 */
 	volatile uint32_t sr = TIM11->SR;
 	if (sr && TIM_SR_UIF) {
-		TIM11->CCR1 = ServoSetPWM_IT(camera.srvLR, TIM11->CCR1, camera.posV);
+		if (camera.init) {
+			TIM11->CCR1 = ServoSetPWM_IT(&camera.srvUD, TIM11->CCR1, camera.posV);
+		}
 		TIM11->SR &= ~TIM_SR_UIF;
 	}
   /* USER CODE END TIM1_TRG_COM_TIM11_IRQn 1 */
