@@ -37,6 +37,11 @@
 			<locationURI>Common</locationURI>
 		</link>
 		<link>
+			<name>Devices</name>
+			<type>2</type>
+			<locationURI>Devices</locationURI>
+		</link>
+		<link>
 			<name>F4xx</name>
 			<type>2</type>
 			<locationURI>F4xx</locationURI>
@@ -46,6 +51,10 @@
 		<variable>
 			<name>Common</name>
 			<value>file:/D:/STM32/LIBRARY/Common</value>
+		</variable>
+		<variable>
+			<name>Devices</name>
+			<value>file:/D:/STM32/LIBRARY/Devices</value>
 		</variable>
 		<variable>
 			<name>F4xx</name>
