@@ -89,7 +89,18 @@ USART_Conn_t USART_Orange = {.USART = USART1,
                              .rxlen = 0};
 
 
-Camera_t camera;
+//	Objects and Sensors
+TCA9548A_t tca9548 = {.addr=TCA9548A_ADDR, .status=DEVICE_NOT_INIT, .step=0, .port=0x00};						//i2c multiplexer
+
+ADXL345_t adxl345 = {.addr=ADXL345_ADDR, .status=DEVICE_NOT_INIT, .step=0, .data={0}, .raw={0}};		//accelerometer
+ITG3205_t itg3205 = {.addr=ITG3205_ADDR, .status=DEVICE_NOT_INIT, .step=0, .data={0}, .raw={0}};		//gyroscope
+QMC5883L_t qmc5883 = {.addr=QMC5883L_ADDR, .status=DEVICE_NOT_INIT, .step=0, .data={0}, .raw={0}}; 	//magnetometer
+BME280_t bme280 = {.addr=BME280_ADDR1, .status=DEVICE_NOT_INIT, .step=0,
+                   .calib_data={0}, .uncomp_data={0}, .data_int={0}, .data_float={0}};							//ambient sensor
+INA219_t ina219 = {.addr=INA219_ADDR, .status=DEVICE_NOT_INIT, .step=0, .raw={0}};									//current voltage power sensor
+
+Camera_t camera;		//camera's servo drives
+HC_SR04_t USMrange = {.distance_mm = 0, .start = 0, .stop = 0};
 
 /* USER CODE END PV */
 

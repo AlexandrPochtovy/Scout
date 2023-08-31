@@ -64,6 +64,7 @@ extern "C" {
 #include "INA219/INA219.h"
 #include "TCA9548A/TCA9548A.h"
 #include "SG90/SG90.h"
+#include "HC_SR04/HC_SR04.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

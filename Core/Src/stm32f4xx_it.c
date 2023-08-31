@@ -59,6 +59,7 @@
 
 /* USER CODE BEGIN EV */
 extern Camera_t camera;
+extern HC_SR04_t USMrange;
 
 /* USER CODE END EV */
 
@@ -545,6 +546,18 @@ void TIM8_BRK_TIM12_IRQHandler(void)
   /* USER CODE END TIM8_BRK_TIM12_IRQn 0 */
 
   /* USER CODE BEGIN TIM8_BRK_TIM12_IRQn 1 */
+	uint32_t sr = TIM12->SR;
+	if (sr & TIM_SR_CC2IF) {
+		if (TIM12->CCER & TIM_CCER_CC2P) {//полярность 1
+			USMrange.stop = TIM12->CCR2;
+			HC_SR04DistanceSimpleCalc(&USMrange, 340, 65535);
+			TIM12->CCER &= ~TIM_CCER_CC2P;
+		} else {//полярность 1
+			USMrange.start = TIM12->CCR2;
+			TIM12->CCER |= TIM_CCER_CC2P;
+		}
+	}
+	TIM12->SR = 0;
 
   /* USER CODE END TIM8_BRK_TIM12_IRQn 1 */
 }
