@@ -350,9 +350,9 @@ void MX_TIM10_Init(void)
   /* USER CODE BEGIN TIM10_Init 1 */
 
   /* USER CODE END TIM10_Init 1 */
-  TIM_InitStruct.Prescaler = 159;
+  TIM_InitStruct.Prescaler = 63;
   TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
-  TIM_InitStruct.Autoreload = 20000;
+  TIM_InitStruct.Autoreload = 50000;
   TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
   LL_TIM_Init(TIM10, &TIM_InitStruct);
   LL_TIM_DisableARRPreload(TIM10);
@@ -360,7 +360,7 @@ void MX_TIM10_Init(void)
   TIM_OC_InitStruct.OCMode = LL_TIM_OCMODE_PWM1;
   TIM_OC_InitStruct.OCState = LL_TIM_OCSTATE_DISABLE;
   TIM_OC_InitStruct.OCNState = LL_TIM_OCSTATE_DISABLE;
-  TIM_OC_InitStruct.CompareValue = (SG90_MAX + SG90_MIN) / 2;
+  TIM_OC_InitStruct.CompareValue = 1500;
   TIM_OC_InitStruct.OCPolarity = LL_TIM_OCPOLARITY_HIGH;
   LL_TIM_OC_Init(TIM10, LL_TIM_CHANNEL_CH1, &TIM_OC_InitStruct);
   LL_TIM_OC_DisableFast(TIM10, LL_TIM_CHANNEL_CH1);
@@ -402,9 +402,9 @@ void MX_TIM11_Init(void)
   /* USER CODE BEGIN TIM11_Init 1 */
 
   /* USER CODE END TIM11_Init 1 */
-  TIM_InitStruct.Prescaler = 159;
+  TIM_InitStruct.Prescaler = 63;
   TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
-  TIM_InitStruct.Autoreload = 20000;
+  TIM_InitStruct.Autoreload = 50000;
   TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
   LL_TIM_Init(TIM11, &TIM_InitStruct);
   LL_TIM_DisableARRPreload(TIM11);
@@ -412,7 +412,7 @@ void MX_TIM11_Init(void)
   TIM_OC_InitStruct.OCMode = LL_TIM_OCMODE_PWM1;
   TIM_OC_InitStruct.OCState = LL_TIM_OCSTATE_DISABLE;
   TIM_OC_InitStruct.OCNState = LL_TIM_OCSTATE_DISABLE;
-  TIM_OC_InitStruct.CompareValue = (SG90_MAX + SG90_MIN) / 2;
+  TIM_OC_InitStruct.CompareValue = 1500;
   TIM_OC_InitStruct.OCPolarity = LL_TIM_OCPOLARITY_HIGH;
   LL_TIM_OC_Init(TIM11, LL_TIM_CHANNEL_CH1, &TIM_OC_InitStruct);
   LL_TIM_OC_DisableFast(TIM11, LL_TIM_CHANNEL_CH1);
@@ -474,21 +474,18 @@ void MX_TIM12_Init(void)
   LL_TIM_Init(TIM12, &TIM_InitStruct);
   LL_TIM_DisableARRPreload(TIM12);
   LL_TIM_SetClockSource(TIM12, LL_TIM_CLOCKSOURCE_INTERNAL);
-  TIM_OC_InitStruct.OCMode = LL_TIM_OCMODE_INACTIVE;
+  LL_TIM_OC_EnablePreload(TIM12, LL_TIM_CHANNEL_CH1);
+  TIM_OC_InitStruct.OCMode = LL_TIM_OCMODE_PWM1;
   TIM_OC_InitStruct.OCState = LL_TIM_OCSTATE_DISABLE;
   TIM_OC_InitStruct.OCNState = LL_TIM_OCSTATE_DISABLE;
-  TIM_OC_InitStruct.CompareValue = 2;
+  TIM_OC_InitStruct.CompareValue = 1;
   TIM_OC_InitStruct.OCPolarity = LL_TIM_OCPOLARITY_HIGH;
   LL_TIM_OC_Init(TIM12, LL_TIM_CHANNEL_CH1, &TIM_OC_InitStruct);
   LL_TIM_OC_DisableFast(TIM12, LL_TIM_CHANNEL_CH1);
-  LL_TIM_SetOnePulseMode(TIM12, LL_TIM_ONEPULSEMODE_SINGLE);
-  LL_TIM_SetTriggerInput(TIM12, LL_TIM_TS_ITR2);
-  LL_TIM_SetSlaveMode(TIM12, LL_TIM_SLAVEMODE_TRIGGER);
-  LL_TIM_DisableIT_TRIG(TIM12);
-  LL_TIM_DisableDMAReq_TRIG(TIM12);
+  LL_TIM_OC_DisablePreload(TIM12, LL_TIM_CHANNEL_CH1);
   LL_TIM_IC_SetActiveInput(TIM12, LL_TIM_CHANNEL_CH2, LL_TIM_ACTIVEINPUT_DIRECTTI);
   LL_TIM_IC_SetPrescaler(TIM12, LL_TIM_CHANNEL_CH2, LL_TIM_ICPSC_DIV1);
-  LL_TIM_IC_SetFilter(TIM12, LL_TIM_CHANNEL_CH2, LL_TIM_IC_FILTER_FDIV1);
+  LL_TIM_IC_SetFilter(TIM12, LL_TIM_CHANNEL_CH2, LL_TIM_IC_FILTER_FDIV2_N6);
   LL_TIM_IC_SetPolarity(TIM12, LL_TIM_CHANNEL_CH2, LL_TIM_IC_POLARITY_RISING);
   /* USER CODE BEGIN TIM12_Init 2 */
 

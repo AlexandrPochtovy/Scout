@@ -27,7 +27,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "Peripherals/I2C_LowLevel/I2C_HW.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

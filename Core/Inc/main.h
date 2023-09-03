@@ -27,7 +27,7 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stddef.h"
+
 #include "stm32f4xx_ll_adc.h"
 #include "stm32f4xx_ll_crc.h"
 #include "stm32f4xx_ll_i2c.h"
@@ -227,7 +227,7 @@ void Error_Handler(void);
 #endif
 
 /* USER CODE BEGIN Private defines */
-#define SG90_MIN	400
+#define SG90_MIN	600
 #define SG90_MAX	2600
 
 /* USER CODE END Private defines */

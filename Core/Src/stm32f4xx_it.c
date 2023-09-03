@@ -58,9 +58,20 @@
 /* External variables --------------------------------------------------------*/
 
 /* USER CODE BEGIN EV */
+extern I2C_IRQ_Conn_t I2CSensors;
+extern I2C_IRQ_Conn_t I2CLasers;
+extern USART_Conn_t USART_Orange;
+extern USART_Conn_t USART_CLI;
+extern USART_Conn_t USART_UNO;
+extern USART_Conn_t UART_GPS;
+extern SPI_Conn_TWO_t SPI_LoRa;
+extern SPI_Conn_TWO_t SPI_Flash;
 extern Camera_t camera;
 extern HC_SR04_t USMrange;
-
+extern uint16_t headlightsLevel;
+extern uint16_t ambientLightLevel;
+extern uint16_t mcuTemp;
+extern uint16_t mcuVoltage;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -370,7 +381,7 @@ void I2C1_EV_IRQHandler(void)
   /* USER CODE END I2C1_EV_IRQn 0 */
 
   /* USER CODE BEGIN I2C1_EV_IRQn 1 */
-
+	I2C_Raw_IRQ_CallBack(&I2CSensors);
   /* USER CODE END I2C1_EV_IRQn 1 */
 }
 
@@ -384,7 +395,7 @@ void I2C1_ER_IRQHandler(void)
   /* USER CODE END I2C1_ER_IRQn 0 */
 
   /* USER CODE BEGIN I2C1_ER_IRQn 1 */
-
+	I2C_ERR_IRQ_CallBack(&I2CSensors);
   /* USER CODE END I2C1_ER_IRQn 1 */
 }
 
@@ -425,7 +436,7 @@ void SPI1_IRQHandler(void)
 
   /* USER CODE END SPI1_IRQn 0 */
   /* USER CODE BEGIN SPI1_IRQn 1 */
-
+	SPI_IRQ_TWO_CallBack(&SPI_LoRa);
   /* USER CODE END SPI1_IRQn 1 */
 }
 
@@ -438,7 +449,7 @@ void USART1_IRQHandler(void)
 
   /* USER CODE END USART1_IRQn 0 */
   /* USER CODE BEGIN USART1_IRQn 1 */
-
+	USART_EV_IRQ_CallBack(&USART_Orange);
   /* USER CODE END USART1_IRQn 1 */
 }
 
@@ -451,7 +462,7 @@ void USART2_IRQHandler(void)
 
   /* USER CODE END USART2_IRQn 0 */
   /* USER CODE BEGIN USART2_IRQn 1 */
-
+	USART_EV_IRQ_CallBack(&USART_CLI);
   /* USER CODE END USART2_IRQn 1 */
 }
 
@@ -464,7 +475,7 @@ void USART3_IRQHandler(void)
 
   /* USER CODE END USART3_IRQn 0 */
   /* USER CODE BEGIN USART3_IRQn 1 */
-
+	USART_EV_IRQ_CallBack(&USART_UNO);
   /* USER CODE END USART3_IRQn 1 */
 }
 
@@ -572,7 +583,16 @@ void TIM8_UP_TIM13_IRQHandler(void)
   /* USER CODE END TIM8_UP_TIM13_IRQn 0 */
 
   /* USER CODE BEGIN TIM8_UP_TIM13_IRQn 1 */
-
+	uint32_t sr = TIM13->SR;
+	if (sr & TIM_SR_UIF) {
+		TIM13->SR &= ~TIM_SR_UIF;
+	}
+	if (sr & TIM_SR_CC1IF) {
+		TIM13->SR &= ~TIM_SR_CC1IF;
+	}
+	if (sr & TIM_SR_CC1OF) {
+		TIM13->SR &= ~TIM_SR_CC1OF;
+	}
   /* USER CODE END TIM8_UP_TIM13_IRQn 1 */
 }
 
@@ -585,7 +605,7 @@ void SPI3_IRQHandler(void)
 
   /* USER CODE END SPI3_IRQn 0 */
   /* USER CODE BEGIN SPI3_IRQn 1 */
-
+	SPI_IRQ_TWO_CallBack(&SPI_Flash);
   /* USER CODE END SPI3_IRQn 1 */
 }
 
@@ -598,7 +618,7 @@ void UART5_IRQHandler(void)
 
   /* USER CODE END UART5_IRQn 0 */
   /* USER CODE BEGIN UART5_IRQn 1 */
-
+USART_EV_IRQ_CallBack(&UART_GPS);
   /* USER CODE END UART5_IRQn 1 */
 }
 
@@ -639,7 +659,7 @@ void I2C3_EV_IRQHandler(void)
   /* USER CODE END I2C3_EV_IRQn 0 */
 
   /* USER CODE BEGIN I2C3_EV_IRQn 1 */
-
+	I2C_Raw_IRQ_CallBack(&I2CLasers);
   /* USER CODE END I2C3_EV_IRQn 1 */
 }
 
@@ -653,7 +673,7 @@ void I2C3_ER_IRQHandler(void)
   /* USER CODE END I2C3_ER_IRQn 0 */
 
   /* USER CODE BEGIN I2C3_ER_IRQn 1 */
-
+	I2C_ERR_IRQ_CallBack(&I2CLasers);
   /* USER CODE END I2C3_ER_IRQn 1 */
 }
 
