@@ -35,4 +35,6 @@ void HardwareInit(void) {
 
 	I2C3->CR2 |= I2C_CR2_ITERREN | I2C_CR2_ITEVTEN;
 	I2C3->CR1 |= I2C_CR1_PE;
+
+	//ADC1->CR2 |=
 }

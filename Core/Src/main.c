@@ -251,7 +251,7 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM7_Init();
   MX_ADC1_Init();
-  //MX_IWDG_Init();
+  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
 	camera.posH = Servo_Init(&camera.srvLR, SG90_MIN, SG90_MAX, 10);
 	camera.posV = Servo_Init(&camera.srvUD, SG90_MIN, SG90_MAX, 10);

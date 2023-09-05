@@ -242,6 +242,18 @@ void ADC_IRQHandler(void)
   /* USER CODE END ADC_IRQn 0 */
 
   /* USER CODE BEGIN ADC_IRQn 1 */
+	//volatile uint32_t csr = ADC->CSR;
+	if (csr && ADC_SR_OVR) {
+		ADC1->SR &= ~ADC_SR_OVR;
+	}
+	volatile uint32_t sr = ADC1->SR;
+	if (sr && ADC_SR_OVR) {//clear overrun
+		ADC1->SR &= ~ADC_SR_OVR;
+	}
+	if (sr && ADC_SR_EOC) {//clear end conversion
+		ambientLightLevel = (uint16_t)ADC1->DR;
+		ADC1->SR &= ~ADC_SR_EOC;
+	}
 
   /* USER CODE END ADC_IRQn 1 */
 }
