@@ -31,7 +31,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "Objects.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,134 +52,38 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-//i2c1 bus for sensors
-uint8_t i2c1Buff[32] = {0};
-fifo_t i2c1Data = {.buffer = i2c1Buff, .buffer_size = sizeof(i2c1Buff), .bytes_avail = 0,
-                   .head = 0, .tail = 0, .lockState = BUFFER_FREE};
-I2C_IRQ_Conn_t I2CSensors = {.i2c = I2C1,
-                          .status = PORT_FREE,
-                          .step = 0,
-                          .addr = 0x00,
-                          .len = 0,
-                          .mode = I2C_MODE_WRITE,
-                          .buffer = &i2c1Data};
-//i2c3 bus for VL53L01 sensors
-uint8_t i2c3Buff[32] = {0};
-fifo_t i2c3Data = {.buffer = i2c3Buff, .buffer_size = sizeof(i2c3Buff), .bytes_avail = 0,
-                   .head = 0, .tail = 0, .lockState = BUFFER_FREE};
-I2C_IRQ_Conn_t I2CLasers= {.i2c = I2C3,
-                          .status = PORT_FREE,
-                          .step = 0,
-                          .addr = 0x00,
-                          .len = 0,
-                          .mode = I2C_MODE_WRITE,
-                          .buffer = &i2c3Data};
-//SPI1 for LoRa radio
-uint8_t spi1b1[255] = {0};
-uint8_t spi1b2[255] = {0};
-fifo_t spi1_TX = {.buffer = spi1b1, .buffer_size = sizeof(spi1b1), .bytes_avail = 0,
-                    .head = 0, .tail = 0, .lockState = BUFFER_FREE};
-fifo_t spi1_RX = {.buffer = spi1b2, .buffer_size = sizeof(spi1b2), .bytes_avail = 0,
-                    .head = 0, .tail = 0, .lockState = BUFFER_FREE};
-SPI_Conn_TWO_t SPI_LoRa = {	.SPIbus = SPI1,
-							.status = PORT_FREE,
-							.mode = SPI_MODE_DUPLEX,
-							.txlen = 0,
-							.txbuffer = &spi1_TX,
-							.txlen = 0,
-							.rxbuffer = &spi1_RX,
-							.rxlen = 0
-};
-//SPI3 for flash
-uint8_t spi3b1[1024] = {0};
-uint8_t spi3b2[1024] = {0};
-fifo_t spi3_TX = {.buffer = spi3b1, .buffer_size = sizeof(spi3b1), .bytes_avail = 0,
-                    .head = 0, .tail = 0, .lockState = BUFFER_FREE};
-fifo_t spi3_RX = {.buffer = spi3b2, .buffer_size = sizeof(spi3b2), .bytes_avail = 0,
-                    .head = 0, .tail = 0, .lockState = BUFFER_FREE};
-SPI_Conn_TWO_t SPI_Flash = {.SPIbus = SPI3,
-							.status = PORT_FREE,
-							.mode = SPI_MODE_DUPLEX,
-							.txlen = 0,
-							.txbuffer = &spi3_TX,
-							.txlen = 0,
-							.rxbuffer = &spi3_RX,
-							.rxlen = 0
-};
-//usart1 bus for Orange Pi Zero2 connection
-uint8_t usart1b1[255] = {0};
-uint8_t usart1b2[255] = {0};
-fifo_t usart1_TX = {.buffer = usart1b1, .buffer_size = sizeof(usart1b1), .bytes_avail = 0,
-                    .head = 0, .tail = 0, .lockState = BUFFER_FREE};
-fifo_t usart1_RX = {.buffer = usart1b2, .buffer_size = sizeof(usart1b2), .bytes_avail = 0,
-                    .head = 0, .tail = 0, .lockState = BUFFER_FREE};
-USART_Conn_t USART_Orange = {.USART = USART1,
-                             .txStatus = PORT_FREE,
-                             .rxStatus= PORT_FREE,
-                             .txbuffer = &usart1_TX,
-                             .txlen = 0,
-                             .rxbuffer = &usart1_RX,
-                             .rxlen = 0};
-//usart2 bus for external connection CLI
-uint8_t usart2b1[255] = {0};
-uint8_t usart2b2[255] = {0};
-fifo_t usart2_TX = {.buffer = usart2b1, .buffer_size = sizeof(usart2b1), .bytes_avail = 0,
-                    .head = 0, .tail = 0, .lockState = BUFFER_FREE};
-fifo_t usart2_RX = {.buffer = usart2b2, .buffer_size = sizeof(usart2b2), .bytes_avail = 0,
-                    .head = 0, .tail = 0, .lockState = BUFFER_FREE};
-USART_Conn_t USART_CLI = {.USART = USART2,
-                             .txStatus = PORT_FREE,
-                             .rxStatus= PORT_FREE,
-                             .txbuffer = &usart2_TX,
-                             .txlen = 0,
-                             .rxbuffer = &usart2_RX,
-                             .rxlen = 0};
-//usart3 bus for external connection Arduino
-uint8_t usart3b1[255] = {0};
-uint8_t usart3b2[255] = {0};
-fifo_t usart3_TX = {.buffer = usart3b1, .buffer_size = sizeof(usart3b1), .bytes_avail = 0,
-                    .head = 0, .tail = 0, .lockState = BUFFER_FREE};
-fifo_t usart3_RX = {.buffer = usart3b2, .buffer_size = sizeof(usart3b2), .bytes_avail = 0,
-                    .head = 0, .tail = 0, .lockState = BUFFER_FREE};
-USART_Conn_t USART_UNO = {.USART = USART3,
-                          .txStatus = PORT_FREE,
-                          .rxStatus= PORT_FREE,
-                          .txbuffer = &usart3_TX,
-                          .txlen = 0,
-                          .rxbuffer = &usart3_RX,
-                          .rxlen = 0};
-//uart5 bus for GPS connection
-uint8_t uart5b1[255] = {0};
-uint8_t uart5b2[255] = {0};
-fifo_t uart5_TX = {.buffer = uart5b1, .buffer_size = sizeof(uart5b1), .bytes_avail = 0,
-                    .head = 0, .tail = 0, .lockState = BUFFER_FREE};
-fifo_t uart5_RX = {.buffer = uart5b2, .buffer_size = sizeof(uart5b2), .bytes_avail = 0,
-                    .head = 0, .tail = 0, .lockState = BUFFER_FREE};
-USART_Conn_t UART_GPS = {.USART = UART5,
-                         .txStatus = PORT_FREE,
-                         .rxStatus= PORT_FREE,
-                         .txbuffer = &uart5_TX,
-                         .txlen = 0,
-                         .rxbuffer = &uart5_RX,
-                         .rxlen = 0};
-
-//	Objects and Sensors
-TCA9548A_t tca9548 = {.addr=TCA9548A_ADDR, .status=DEVICE_NOT_INIT, .step=0, .port=0x00};						//i2c multiplexer
-
-ADXL345_t adxl345 = {.addr=ADXL345_ADDR, .status=DEVICE_NOT_INIT, .step=0, .data={0}, .raw={0}};		//accelerometer
-ITG3205_t itg3205 = {.addr=ITG3205_ADDR, .status=DEVICE_NOT_INIT, .step=0, .data={0}, .raw={0}};		//gyroscope
-QMC5883L_t qmc5883 = {.addr=QMC5883L_ADDR, .status=DEVICE_NOT_INIT, .step=0, .data={0}, .raw={0}}; 	//magnetometer
-BME280_t bme280 = {.addr=BME280_ADDR1, .status=DEVICE_NOT_INIT, .step=0,
-                   .calib_data={0}, .uncomp_data={0}, .data_int={0}, .data_float={0}};							//ambient sensor
-INA219_t ina219 = {.addr=INA219_ADDR, .status=DEVICE_NOT_INIT, .step=0, .raw={0}};									//current voltage power sensor
-
-Camera_t camera;		//camera's servo drives
-HC_SR04_t USMrange = {.distance_mm = 0, .start = 0, .stop = 0};
-
+//variables for time based
+volatile uint32_t mainTimeTick = 0;
+volatile uint32_t sensorReqMask = 0;
+volatile uint32_t laserReqMask = 0;
 uint16_t headlightsLevel = 0;
 uint16_t ambientLightLevel = 0;
 uint16_t mcuTemp = 0;
 uint16_t mcuVoltage = 0;
+
+extern I2C_IRQ_Conn_t I2CSensors;		//i2c1 bus for sensors
+extern I2C_IRQ_Conn_t I2CLasers;		//i2c3 bus for VL53L01 sensors
+extern SPI_Conn_TWO_t SPI_LoRa;			//SPI1 for LoRa radio
+extern SPI_Conn_TWO_t SPI_Flash;		//SPI3 for flash
+extern USART_Conn_t USART_Orange;		//usart1 bus for Orange Pi Zero2 connection
+extern USART_Conn_t USART_CLI;			//usart2 bus for external connection CLI
+extern USART_Conn_t USART_UNO;			//usart3 bus for external connection Arduino
+extern USART_Conn_t UART_GPS;				//uart5 bus for GPS connection
+extern TCA9548A_t tca9548;					//i2c multiplexer
+extern VL53L0x_t LaserFrontLeft;		//laser sensor VL53L01 front left place
+extern VL53L0x_t LaserFrontRight;		//laser sensor VL53L01 front left place
+extern VL53L0x_t LaserMidLeft;			//laser sensor VL53L01 front left place
+extern VL53L0x_t LaserMidRight;			//laser sensor VL53L01 front left place
+extern VL53L0x_t LaserBackLeft;			//laser sensor VL53L01 front left place
+extern VL53L0x_t LaserBackRight;		//laser sensor VL53L01 front left place
+extern ADXL345_t adxl345;						//accelerometer
+extern ITG3205_t itg3205;						//gyroscope
+extern QMC5883L_t qmc5883; 					//magnetometer
+extern BME280_t bme280;							//ambient sensor
+extern INA219_t ina219;							//current voltage power sensor
+extern HC_SR04_t USMrange;
+
+Camera_t camera;		//camera's servo drives
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -256,9 +160,8 @@ int main(void)
 	camera.posH = Servo_Init(&camera.srvLR, SG90_MIN, SG90_MAX, 10);
 	camera.posV = Servo_Init(&camera.srvUD, SG90_MIN, SG90_MAX, 10);
 	HardwareInit();
-
 	camera.posH = SG90_MIN;
-/*	camera.posV = SG90_MIN;
+	camera.posV = SG90_MIN;
 	LL_mDelay(2000);
 	camera.posH = SG90_MAX;
 	LL_mDelay(2000);
@@ -269,14 +172,57 @@ int main(void)
 	camera.posV = SG90_MIN;
 	LL_mDelay(2000);
 	camera.posH = (SG90_MIN + SG90_MAX) / 2;
-	camera.posV = (SG90_MIN + SG90_MAX) / 2;*/
+	camera.posV = (SG90_MIN + SG90_MAX) / 2;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  TIM8->CCR3 = headlightsLevel;
+	  if (sensorReqMask && ADXL_REQ_MASK) {
+	  	uint8_t st;
+	  	st = ADXL345_GetData(&I2CSensors, &adxl345);
+	  	if (st) {
+	  		BusRequestOff(sensorReqMask, ADXL_REQ_MASK);
+	  	}
+	  }
+	  if (sensorReqMask && ITG_REQ_MASK) {
+	  	uint8_t st;
+	  	st = ITG3205_GetData(&I2CSensors, &itg3205);
+	  	if (st) { BusRequestOff(sensorReqMask, ITG_REQ_MASK); }
+	  }
+	  if (sensorReqMask && QMC_REQ_MASK) {
+	  	uint8_t st;
+	  	st = QMC5883L_GetData(&I2CSensors, &qmc5883);
+	  	if (st) {
+	  		BusRequestOff(sensorReqMask, QMC_REQ_MASK);
+	  		///quaternions calculate
+	  	}
+	  }
+		if (sensorReqMask && BME_REQ_MASK) {
+			uint8_t st;
+			st = BME280_GetData(&I2CSensors, &bme280);
+			if (st) {
+				BusRequestOff(sensorReqMask,BME_REQ_MASK);
+			}
+		}
+		if (sensorReqMask && INA_REQ_MASK) {
+			uint8_t st;
+			st = INA219_GetRawData(&I2CSensors, &ina219);
+			if (st) {
+				BusRequestOff(sensorReqMask, INA_REQ_MASK);
+			}
+		}
+		camera.posH = SG90_MAX;
+		LL_mDelay(2000);
+		camera.posV = SG90_MAX;
+		LL_mDelay(2000);
+		camera.posH = SG90_MIN;
+		LL_mDelay(2000);
+		camera.posV = SG90_MIN;
+		LL_mDelay(2000);
+
+  	TIM8->CCR3 = headlightsLevel;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

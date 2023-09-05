@@ -58,6 +58,9 @@
 /* External variables --------------------------------------------------------*/
 
 /* USER CODE BEGIN EV */
+extern volatile uint32_t mainTimeTick;
+extern volatile uint32_t sensorReqMask;
+extern volatile uint32_t laserReqMask;
 extern I2C_IRQ_Conn_t I2CSensors;
 extern I2C_IRQ_Conn_t I2CLasers;
 extern USART_Conn_t USART_Orange;
@@ -201,7 +204,16 @@ void SysTick_Handler(void)
   /* USER CODE END SysTick_IRQn 0 */
 
   /* USER CODE BEGIN SysTick_IRQn 1 */
-
+	++mainTimeTick;
+	if (!(mainTimeTick % IMU_POOL_PERIOD)) {
+		BusRequestOn(sensorReqMask, ADXL_REQ_MASK | ITG_REQ_MASK | QMC_REQ_MASK);
+	}
+	if (!(mainTimeTick % BME_POOL_PERIOD)) {
+		BusRequestOn(sensorReqMask, BME_REQ_MASK);
+	}
+	if (!(mainTimeTick % INA_POOL_PERIOD)) {
+		BusRequestOn(sensorReqMask, INA_REQ_MASK);
+	}
   /* USER CODE END SysTick_IRQn 1 */
 }
 

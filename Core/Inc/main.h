@@ -55,16 +55,21 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 #include "HW_Init.h"
 #include "I2C_MiddleLevel/I2C_API.h"
-#include "Peripherals/SPI_LowLevel/SPI_HW.h"
 #include "Peripherals/USART_LowLevel/USART_HW.h"
+#include "Peripherals/SPI_LowLevel/SPI_HW.h"
 #include "ADXL345/ADXL345.h"
 #include "ITG3205/ITG3205.h"
 #include "QMC5883L/QMC5883L.h"
+#include "Quaternions/MadgwickAHRS.h"
+#include "Quaternions/MahonyAHRS.h"
+#include "Quaternions/QuaterFilter.h"
 #include "BME280/BME280.h"
 #include "INA219/INA219.h"
 #include "TCA9548A/TCA9548A.h"
+#include "VL53L0x/VL53L0x.h"
 #include "SG90/SG90.h"
 #include "HC_SR04/HC_SR04.h"
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -227,6 +232,16 @@ void Error_Handler(void);
 #endif
 
 /* USER CODE BEGIN Private defines */
+#define ADXL_REQ_MASK	0x00000001u
+#define ITG_REQ_MASK	0x00000002u
+#define QMC_REQ_MASK	0x00000004u
+#define BME_REQ_MASK	0x00000008u
+#define INA_REQ_MASK	0x00000010u
+
+#define IMU_POOL_PERIOD	10		//10 msec pool for IMU's sensors: ADXL, ITG and QMC
+#define BME_POOL_PERIOD	1000	//1 sec pool for ambient sensor
+#define INA_POOL_PERIOD	200		//200 msec pool for power sensor
+
 #define SG90_MIN	600
 #define SG90_MAX	2600
 
