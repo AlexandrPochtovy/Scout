@@ -155,7 +155,7 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM7_Init();
   MX_ADC1_Init();
-  MX_IWDG_Init();
+  //MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
 	camera.posH = Servo_Init(&camera.srvLR, SG90_MIN, SG90_MAX, 10);
 	camera.posV = Servo_Init(&camera.srvUD, SG90_MIN, SG90_MAX, 10);
@@ -213,16 +213,18 @@ int main(void)
 				BusRequestOff(sensorReqMask, INA_REQ_MASK);
 			}
 		}
-		camera.posH = SG90_MAX;
+		/*camera.posH = SG90_MAX;
 		LL_mDelay(2000);
 		camera.posV = SG90_MAX;
 		LL_mDelay(2000);
 		camera.posH = SG90_MIN;
 		LL_mDelay(2000);
 		camera.posV = SG90_MIN;
-		LL_mDelay(2000);
-
-  	TIM8->CCR3 = headlightsLevel;
+		LL_mDelay(2000);*/
+	int32_t tmp = 1000 - (ambientLightLevel - 100) / 2;
+	headlightsLevel = Min(tmp, 0);
+	headlightsLevel = Max(tmp, 1000);
+	TIM8->CCR3 = headlightsLevel;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

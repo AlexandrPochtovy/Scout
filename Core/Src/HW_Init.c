@@ -36,5 +36,8 @@ void HardwareInit(void) {
 	I2C3->CR2 |= I2C_CR2_ITERREN | I2C_CR2_ITEVTEN;
 	I2C3->CR1 |= I2C_CR1_PE;
 
-	//ADC1->CR2 |=
+	ADC1->CR1 |= ADC_CR1_EOCIE | ADC_CR1_OVRIE;
+	ADC1->CR2 |= ADC_CR2_ADON;
+	LL_mDelay(5);
+	ADC1->CR2 |= ADC_CR2_SWSTART;
 }
