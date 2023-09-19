@@ -23,7 +23,6 @@
 #include "i2c.h"
 #include "iwdg.h"
 #include "rng.h"
-#include "rtc.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -82,14 +81,24 @@ extern QMC5883L_t qmc5883; 					//magnetometer
 extern BME280_t bme280;							//ambient sensor
 extern INA219_t ina219;							//current voltage power sensor
 extern HC_SR04_t USMrange;
-
+extern Drive_t Drive;
+//extern pidData_t pidWL;
+//extern pidData_t pidWR;
+extern PID_t pidWL;
+extern PID_t pidWR;
 Camera_t camera;		//camera's servo drives
+uint16_t leftWheelPWM = 0;
+uint16_t rightWheelPWM = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+void DriveStop(void);
+void DriveForward(void);
+void DriveBackward(void);
+void DriveRight(void);
+void DriveLeft(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -134,7 +143,6 @@ int main(void)
   MX_GPIO_Init();
   MX_CRC_Init();
   MX_RNG_Init();
-  MX_RTC_Init();
   MX_SPI1_Init();
   MX_SPI3_Init();
   MX_I2C1_Init();
@@ -149,14 +157,15 @@ int main(void)
   MX_TIM9_Init();
   MX_TIM10_Init();
   MX_TIM11_Init();
-  MX_TIM13_Init();
   MX_TIM12_Init();
   MX_TIM8_Init();
   MX_TIM6_Init();
   MX_TIM7_Init();
+  MX_TIM13_Init();
   MX_ADC1_Init();
-  //MX_IWDG_Init();
+  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
+  	SysTick_Config(SystemCoreClock / 1000);	//1ms tick
 	camera.posH = Servo_Init(&camera.srvLR, SG90_MIN, SG90_MAX, 10);
 	camera.posV = Servo_Init(&camera.srvUD, SG90_MIN, SG90_MAX, 10);
 	HardwareInit();
@@ -173,13 +182,15 @@ int main(void)
 	LL_mDelay(2000);
 	camera.posH = (SG90_MIN + SG90_MAX) / 2;
 	camera.posV = (SG90_MIN + SG90_MAX) / 2;
+	PID_Init(100, 20, 5, 100, 0.1, &pidWL);
+	PID_Init(100, 20, 5, 100, 0.1, &pidWR);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if (sensorReqMask && ADXL_REQ_MASK) {
+	  /*if (sensorReqMask && ADXL_REQ_MASK) {
 	  	uint8_t st;
 	  	st = ADXL345_GetData(&I2CSensors, &adxl345);
 	  	if (st) {
@@ -212,7 +223,7 @@ int main(void)
 			if (st) {
 				BusRequestOff(sensorReqMask, INA_REQ_MASK);
 			}
-		}
+		}*/
 		/*camera.posH = SG90_MAX;
 		LL_mDelay(2000);
 		camera.posV = SG90_MAX;
@@ -221,13 +232,20 @@ int main(void)
 		LL_mDelay(2000);
 		camera.posV = SG90_MIN;
 		LL_mDelay(2000);*/
-	int32_t tmp = 1000 - (ambientLightLevel - 100) / 2;
-	headlightsLevel = Min(tmp, 0);
-	headlightsLevel = Max(tmp, 1000);
-	TIM8->CCR3 = headlightsLevel;
+
+	DriveForward();
+
+	//int32_t tmp = 1000 - (ambientLightLevel - 100) / 2;
+	//headlightsLevel = Min(tmp, 0);
+	//headlightsLevel = Max(tmp, 1000);
+	//TIM8->CCR3 = headlightsLevel;
+
+	//CCR1 - right
+	//CCR2 - left
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	//LL_IWDG_ReloadCounter(IWDG);
   }
   /* USER CODE END 3 */
 }
@@ -257,17 +275,9 @@ void SystemClock_Config(void)
   {
 
   }
-  LL_PWR_EnableBkUpAccess();
-  LL_RCC_LSE_Enable();
-
-   /* Wait till LSE is ready */
-  while(LL_RCC_LSE_IsReady() != 1)
-  {
-
-  }
   LL_RCC_HSE_EnableCSS();
-  LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLM_DIV_8, 320, LL_RCC_PLLP_DIV_2);
-  LL_RCC_PLL_ConfigDomain_48M(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLM_DIV_8, 320, LL_RCC_PLLQ_DIV_8);
+  LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLM_DIV_8, 336, LL_RCC_PLLP_DIV_2);
+  LL_RCC_PLL_ConfigDomain_48M(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLM_DIV_8, 336, LL_RCC_PLLQ_DIV_8);
   LL_RCC_PLL_Enable();
 
    /* Wait till PLL is ready */
@@ -288,12 +298,78 @@ void SystemClock_Config(void)
   {
 
   }
-  LL_Init1msTick(160000000);
-  LL_SetSystemCoreClock(160000000);
+  LL_Init1msTick(168000000);
+  LL_SetSystemCoreClock(168000000);
 }
 
 /* USER CODE BEGIN 4 */
+void DriveStop(void) {
+	LL_GPIO_ResetOutputPin(Drive_A1_GPIO_Port, Drive_A1_Pin | Drive_A2_Pin | Drive_B1_Pin | Drive_B2_Pin);
+}
 
+void DriveForward(void) {
+	LL_GPIO_ResetOutputPin(Drive_A1_GPIO_Port, Drive_A2_Pin | Drive_B2_Pin);
+	LL_GPIO_SetOutputPin(Drive_A1_GPIO_Port, Drive_A1_Pin | Drive_B1_Pin);
+}
+void GoBackward(void){
+	LL_GPIO_ResetOutputPin(Drive_A1_GPIO_Port, Drive_A1_Pin | Drive_B1_Pin);
+	LL_GPIO_SetOutputPin(Drive_A1_GPIO_Port, Drive_A2_Pin | Drive_B2_Pin);
+}
+void GoRight(void){
+	LL_GPIO_ResetOutputPin(Drive_A1_GPIO_Port, Drive_A1_Pin | Drive_B2_Pin);
+	LL_GPIO_SetOutputPin(Drive_A1_GPIO_Port, Drive_A2_Pin | Drive_B1_Pin);
+}
+void DriveLeft(void){
+	LL_GPIO_ResetOutputPin(Drive_A1_GPIO_Port, Drive_A2_Pin | Drive_B1_Pin);
+	LL_GPIO_SetOutputPin(Drive_A1_GPIO_Port, Drive_A1_Pin | Drive_B2_Pin);
+}
+
+void HardwareInit(void) {
+
+	TIM3->CCER |= TIM_CCER_CC1E | TIM_CCER_CC2E;
+	//TIM3->DIER |= TIM_DIER_UIE | TIM_DIER_CC2IE;
+	TIM3->CR1 |= TIM_CR1_CEN;
+	TIM4->CCER |= TIM_CCER_CC1E | TIM_CCER_CC2E;
+	//TIM4->DIER |= TIM_DIER_UIE | TIM_DIER_CC2IE;
+	TIM4->CR1 |= TIM_CR1_CEN;
+
+	TIM7->DIER |= TIM_DIER_UIE;
+	TIM7->CR1 |= TIM_CR1_CEN;
+
+	TIM10->CCER |= TIM_CCER_CC1E;
+	TIM10->DIER |= TIM_DIER_UIE;
+	TIM10->CR1 |= TIM_CR1_CEN;
+
+	TIM11->CCER |= TIM_CCER_CC1E;
+	TIM11->DIER |= TIM_DIER_UIE;
+	TIM11->CR1 |= TIM_CR1_CEN;
+
+	TIM12->CCER |= TIM_CCER_CC1E | TIM_CCER_CC2E;
+	TIM12->DIER |= TIM_DIER_UIE | TIM_DIER_CC2IE;
+	TIM12->CR1 |= TIM_CR1_CEN;
+
+	TIM8->CCER |= TIM_CCER_CC3E;
+	TIM8->BDTR |= TIM_BDTR_MOE;
+	TIM8->CR1 |= TIM_CR1_CEN;
+
+	TIM9->CCER |= TIM_CCER_CC1E | TIM_CCER_CC2E;
+	TIM9->DIER |= TIM_DIER_UIE;
+	TIM9->CR1 |= TIM_CR1_CEN;
+
+	I2C1->CR2 |= I2C_CR2_ITERREN | I2C_CR2_ITEVTEN;
+	I2C1->CR1 |= I2C_CR1_PE;
+
+	/*I2C2->CR2 |= I2C_CR2_ITERREN | I2C_CR2_ITEVTEN;
+	I2C2->CR1 |= I2C_CR1_PE;*/
+
+	I2C3->CR2 |= I2C_CR2_ITERREN | I2C_CR2_ITEVTEN;
+	I2C3->CR1 |= I2C_CR1_PE;
+
+	ADC1->CR1 |= ADC_CR1_EOCIE | ADC_CR1_OVRIE;
+	ADC1->CR2 |= ADC_CR2_ADON;
+	LL_mDelay(5);
+	ADC1->CR2 |= ADC_CR2_SWSTART;
+}
 /* USER CODE END 4 */
 
 /**
