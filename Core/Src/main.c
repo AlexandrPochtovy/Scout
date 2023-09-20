@@ -55,7 +55,7 @@
 volatile uint32_t mainTimeTick = 0;
 volatile uint32_t sensorReqMask = 0;
 volatile uint32_t laserReqMask = 0;
-uint16_t headlightsLevel = 0;
+uint16_t headLightsLevel = 0;
 uint16_t ambientLightLevel = 0;
 uint16_t mcuTemp = 0;
 uint16_t mcuVoltage = 0;
@@ -82,10 +82,8 @@ extern BME280_t bme280;							//ambient sensor
 extern INA219_t ina219;							//current voltage power sensor
 extern HC_SR04_t USMrange;
 extern Drive_t Drive;
-//extern pidData_t pidWL;
-//extern pidData_t pidWR;
-extern PID_t pidWL;
-extern PID_t pidWR;
+extern PID_M_t pidWL;
+extern PID_M_t pidWR;
 Camera_t camera;		//camera's servo drives
 uint16_t leftWheelPWM = 0;
 uint16_t rightWheelPWM = 0;
@@ -125,9 +123,6 @@ int main(void)
   /* System interrupt init*/
   NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
-  /* SysTick_IRQn interrupt configuration */
-  NVIC_SetPriority(SysTick_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),15, 0));
-
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
@@ -163,27 +158,26 @@ int main(void)
   MX_TIM7_Init();
   MX_TIM13_Init();
   MX_ADC1_Init();
-  MX_IWDG_Init();
+  //MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
   	SysTick_Config(SystemCoreClock / 1000);	//1ms tick
-	camera.posH = Servo_Init(&camera.srvLR, SG90_MIN, SG90_MAX, 10);
-	camera.posV = Servo_Init(&camera.srvUD, SG90_MIN, SG90_MAX, 10);
+	TIM10->CCR1 = camera.posH = Servo_Init(&camera.srvLR, SG90_MIN, SG90_MAX, 10);
+	TIM11->CCR1 = camera.posV = Servo_Init(&camera.srvUD, SG90_MIN, SG90_MAX, 10);
+
 	HardwareInit();
-	camera.posH = SG90_MIN;
-	camera.posV = SG90_MIN;
-	LL_mDelay(2000);
-	camera.posH = SG90_MAX;
-	LL_mDelay(2000);
-	camera.posV = SG90_MAX;
-	LL_mDelay(2000);
-	camera.posH = SG90_MIN;
-	LL_mDelay(2000);
-	camera.posV = SG90_MIN;
-	LL_mDelay(2000);
-	camera.posH = (SG90_MIN + SG90_MAX) / 2;
-	camera.posV = (SG90_MIN + SG90_MAX) / 2;
-	PID_Init(100, 20, 5, 100, 0.1, &pidWL);
-	PID_Init(100, 20, 5, 100, 0.1, &pidWR);
+	PID_MotoInit(20, 5, 1.5, 50, 100, &pidWL);
+	PID_MotoInit(20, 5, 1.5, 50, 100, &pidWR);
+	uint8_t stbus;
+	do { stbus = ADXL345_Init(&I2CSensors, &adxl345); } while (!stbus);//init accelerometer
+	LL_mDelay(1000);
+	//do { stbus = ITG3205_Init(&I2CSensors, &itg3205); } while (!stbus);//init gyroscope
+	LL_mDelay(1000);
+	//do { stbus = QMC5883L_Init(&I2CSensors, &qmc5883); } while (!stbus);//init magnetometer
+	LL_mDelay(1000);
+	do { stbus = BME280_Init(&I2CSensors, &bme280); } while (!stbus);//init ambient sensor
+	LL_mDelay(1000);
+	do { stbus = INA219_Init(&I2CSensors, &ina219); } while (!stbus);//init power sensor
+	LL_mDelay(1000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -276,8 +270,8 @@ void SystemClock_Config(void)
 
   }
   LL_RCC_HSE_EnableCSS();
-  LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLM_DIV_8, 336, LL_RCC_PLLP_DIV_2);
-  LL_RCC_PLL_ConfigDomain_48M(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLM_DIV_8, 336, LL_RCC_PLLQ_DIV_8);
+  LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLM_DIV_8, 320, LL_RCC_PLLP_DIV_2);
+  LL_RCC_PLL_ConfigDomain_48M(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLM_DIV_8, 320, LL_RCC_PLLQ_DIV_8);
   LL_RCC_PLL_Enable();
 
    /* Wait till PLL is ready */
@@ -298,8 +292,8 @@ void SystemClock_Config(void)
   {
 
   }
-  LL_Init1msTick(168000000);
-  LL_SetSystemCoreClock(168000000);
+  LL_Init1msTick(160000000);
+  LL_SetSystemCoreClock(160000000);
 }
 
 /* USER CODE BEGIN 4 */

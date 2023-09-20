@@ -53,15 +53,14 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "Function/Function.h"
-#include "InterfacesAPI/I2C_API/I2C_API.h"
+#include "I2C_API.h"
 #include "Peripherals/SPI_LowLevel/SPI_HW.h"
 #include "Peripherals/USART_LowLevel/USART_HW.h"
 #include "Quaternions/QuaterFilter.h"
 #include "Quaternions/QuaterFilter.h"
 #include "SG90/SG90.h"
 #include "HC_SR04/HC_SR04.h"
-#include "PID/PID_Moto/PID_Moto.h"
-//#include "PID/PID_Wiki/PID_W.h"
+#include "PID/PID_Wiki/PID_Moto.h"
 //#include "PID/AVR_PID/pid.h"
 #include "PID/SpeedControl/SpeedControl.h"
 #include "ADXL345/ADXL345.h"

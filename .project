@@ -46,6 +46,16 @@
 			<type>2</type>
 			<locationURI>F4xx</locationURI>
 		</link>
+		<link>
+			<name>I2C_API</name>
+			<type>2</type>
+			<locationURI>I2C_API</locationURI>
+		</link>
+		<link>
+			<name>SPI_API</name>
+			<type>2</type>
+			<locationURI>SPI_API</locationURI>
+		</link>
 	</linkedResources>
 	<variableList>
 		<variable>
@@ -59,6 +69,14 @@
 		<variable>
 			<name>F4xx</name>
 			<value>file:/D:/STM32/LIBRARY/MCU/F4xx</value>
+		</variable>
+		<variable>
+			<name>I2C_API</name>
+			<value>file:/D:/STM32/LIBRARY/InterfacesAPI/I2C_API</value>
+		</variable>
+		<variable>
+			<name>SPI_API</name>
+			<value>file:/D:/STM32/LIBRARY/InterfacesAPI/SPI_API</value>
 		</variable>
 	</variableList>
 </projectDescription>

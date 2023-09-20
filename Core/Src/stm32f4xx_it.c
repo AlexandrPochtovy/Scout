@@ -76,8 +76,8 @@ extern uint16_t ambientLightLevel;
 extern uint16_t mcuTemp;
 extern uint16_t mcuVoltage;
 extern Drive_t Drive;
-extern PID_t pidWL;
-extern PID_t pidWR;
+extern PID_M_t pidWL;
+extern PID_M_t pidWR;
 extern uint16_t leftWheelPWM;
 extern uint16_t rightWheelPWM;
 /* USER CODE END EV */
@@ -211,13 +211,13 @@ void SysTick_Handler(void)
   /* USER CODE BEGIN SysTick_IRQn 1 */
 	++mainTimeTick;
 	if (!(mainTimeTick % IMU_POOL_PERIOD)) {
-		BusRequestOn(sensorReqMask, ADXL_REQ_MASK | ITG_REQ_MASK | QMC_REQ_MASK);
+		//BusRequestOn(sensorReqMask, ADXL_REQ_MASK | ITG_REQ_MASK | QMC_REQ_MASK);
 	}
 	if (!(mainTimeTick % BME_POOL_PERIOD)) {
 		BusRequestOn(sensorReqMask, BME_REQ_MASK);
 	}
 	if (!(mainTimeTick % INA_POOL_PERIOD)) {
-		BusRequestOn(sensorReqMask, INA_REQ_MASK);
+		//BusRequestOn(sensorReqMask, INA_REQ_MASK);
 	}
   /* USER CODE END SysTick_IRQn 1 */
 }
@@ -268,7 +268,6 @@ void ADC_IRQHandler(void)
 		ambientLightLevel = (uint16_t)ADC1->DR;
 		ADC1->SR &= ~ADC_SR_EOC;
 	}
-
   /* USER CODE END ADC_IRQn 1 */
 }
 
@@ -349,12 +348,10 @@ void TIM1_UP_TIM10_IRQHandler(void)
   /* USER CODE END TIM1_UP_TIM10_IRQn 0 */
 
   /* USER CODE BEGIN TIM1_UP_TIM10_IRQn 1 */
-	//TODO edit code!!!
 	volatile uint32_t sr = TIM10->SR;
 	if (sr && TIM_SR_UIF) {
-		TIM10->CCR1 = ServoSetPWM_IT(&camera.srvLR, TIM10->CCR1, camera.posH);
+		TIM10->CCR1 = SimpleRamp_IT(TIM10->CCR1, camera.posH, camera.srvLR.min, camera.srvLR.max, camera.srvLR.step);
 		TIM10->SR &= ~TIM_SR_UIF;
-		headLightsLevel++;
 	}
 
   /* USER CODE END TIM1_UP_TIM10_IRQn 1 */
@@ -370,14 +367,10 @@ void TIM1_TRG_COM_TIM11_IRQHandler(void)
   /* USER CODE END TIM1_TRG_COM_TIM11_IRQn 0 */
 
   /* USER CODE BEGIN TIM1_TRG_COM_TIM11_IRQn 1 */
-	//TODO edit code!!!
 	volatile uint32_t sr = TIM11->SR;
 	if (sr && TIM_SR_UIF) {
-		TIM11->CCR1 = ServoSetPWM_IT(&camera.srvUD, TIM11->CCR1, camera.posV);
+		TIM11->CCR1 = SimpleRamp_IT(TIM11->CCR1, camera.posV, camera.srvUD.min, camera.srvUD.max, camera.srvUD.step);
 		TIM11->SR &= ~TIM_SR_UIF;
-		if (headLightsLevel > 1000) {
-			headLightsLevel = 0;
-		}
 	}
   /* USER CODE END TIM1_TRG_COM_TIM11_IRQn 1 */
 }
@@ -590,8 +583,8 @@ void TIM8_UP_TIM13_IRQHandler(void)
 	sr = 0;
 	sr = TIM13->SR;
 	if (sr & TIM_SR_UIF) {
-		leftWheelPWM = PID_Calculate(Drive.SP.speedLeft, Drive.speedL, 0, 3999, &pidWL);
-		rightWheelPWM = PID_Calculate(Drive.SP.speedRight, Drive.speedR, 0, 3999, &pidWR);
+		leftWheelPWM = (uint16_t)PID_MotoCalc(Drive.SP.speedLeft, Drive.speedL, 0, 3999, &pidWL);
+		rightWheelPWM = (uint16_t)PID_MotoCalc(Drive.SP.speedRight, Drive.speedR, 0, 3999, &pidWR);
 		TIM13->SR &= ~TIM_SR_UIF;
 	}
   /* USER CODE END TIM8_UP_TIM13_IRQn 1 */

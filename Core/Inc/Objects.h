@@ -194,14 +194,9 @@ HC_SR04_t USMrange = {.distance_mm = 0, .start = 0, .stop = 0};
 Drive_t Drive = {.mode = WAITING, .step = 0, .coord.x = 0, .coord.y = 0, .speedL = 0, .speedR = 0, .speedRobot = 0,
 				.distance = 0, .fullPath = 0, .intLength = 0, .bearing  = 0, .course = 0, .angle = 0,
 				.iAngle = 0, .gyroSpeed = 0, .SP.target.x = 0, .SP.target.y = 0, .SP.speedLeft = 0, .SP.speedRight = 0};
+PID_M_t pidWL = {0};
+PID_M_t pidWR = {0};
 
-//pid_t pidWL = {.Kp = 100, .Ki = 10, .Kd = 5, .N = 5, .d0 = 0, .d1 = 0, .fd0 = 0, .fd1 = 1, .out = 0};
-//pid_t pidWR = {.Kp = 100, .Ki = 10, .Kd = 5, .N = 5, .d0 = 0, .d1 = 0, .fd0 = 0, .fd1 = 1, .out = 0};
-
-//pidData_t pidWL = {.P_Factor = 100, .I_Factor = 50, .D_Factor = 10, .lastProcessValue = 0, .maxError = 400, .maxSumError = 1000};
-//pidData_t pidWR = {.P_Factor = 100, .I_Factor = 50, .D_Factor = 10, .lastProcessValue = 0, .maxError = 400, .maxSumError = 1000};
-PID_t pidWR = {.kp = 100, .ki= 50, .kd= 10, .Ts = 0.1, .old_ef = 0, .integral = 0};
-PID_t pidWL = {.kp = 100, .ki= 50, .kd= 10, .Ts = 0.1, .old_ef = 0, .integral = 0};
 #ifdef __cplusplus
 }
 #endif
