@@ -57,11 +57,9 @@ extern "C" {
 #include "Peripherals/SPI_LowLevel/SPI_HW.h"
 #include "Peripherals/USART_LowLevel/USART_HW.h"
 #include "Quaternions/QuaterFilter.h"
-#include "Quaternions/QuaterFilter.h"
 #include "SG90/SG90.h"
 #include "HC_SR04/HC_SR04.h"
 #include "PID/PID_Wiki/PID_Moto.h"
-//#include "PID/AVR_PID/pid.h"
 #include "PID/SpeedControl/SpeedControl.h"
 #include "ADXL345/ADXL345.h"
 #include "ITG3205/ITG3205.h"
@@ -239,10 +237,10 @@ void HardwareInit(void);
 #define INA_REQ_MASK	0x00000010u
 #define PID_CALC_MASK	0x00000020u
 
-#define IMU_POOL_PERIOD	10			//10 msec pool for IMU's sensors: ADXL, ITG and QMC
-#define BME_POOL_PERIOD	10000		//10 sec pool for ambient sensor
-#define INA_POOL_PERIOD	2000		//200 msec pool for power sensor
-#define PID_CALC_PERIOD	10			//10 msec PID loop calculating
+#define IMU_POOL_PERIOD	50			//10 msec pool for IMU's sensors: ADXL, ITG and QMC
+#define BME_POOL_PERIOD	5000		//10 sec pool for ambient sensor
+#define INA_POOL_PERIOD	1000		//200 msec pool for power sensor
+//#define PID_CALC_PERIOD	10			//10 msec PID loop calculating
 
 #define SG90_MIN	600
 #define SG90_MAX	2600

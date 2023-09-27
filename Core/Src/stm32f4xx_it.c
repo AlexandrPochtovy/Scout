@@ -210,14 +210,14 @@ void SysTick_Handler(void)
 
   /* USER CODE BEGIN SysTick_IRQn 1 */
 	++mainTimeTick;
-	if (!(mainTimeTick % IMU_POOL_PERIOD)) {
-		//BusRequestOn(sensorReqMask, ADXL_REQ_MASK | ITG_REQ_MASK | QMC_REQ_MASK);
+	/*if (mainTimeTick % IMU_POOL_PERIOD == 0) {
+		sensorReqMask |= ADXL_REQ_MASK | ITG_REQ_MASK | QMC_REQ_MASK;
+	}*/
+	if ((mainTimeTick % BME_POOL_PERIOD) == 0) {
+		sensorReqMask |= BME_REQ_MASK;
 	}
-	if (!(mainTimeTick % BME_POOL_PERIOD)) {
-		BusRequestOn(sensorReqMask, BME_REQ_MASK);
-	}
-	if (!(mainTimeTick % INA_POOL_PERIOD)) {
-		//BusRequestOn(sensorReqMask, INA_REQ_MASK);
+	if ((mainTimeTick % INA_POOL_PERIOD) == 0) {
+		sensorReqMask |= INA_REQ_MASK;
 	}
   /* USER CODE END SysTick_IRQn 1 */
 }
@@ -385,7 +385,8 @@ void I2C1_EV_IRQHandler(void)
   /* USER CODE END I2C1_EV_IRQn 0 */
 
   /* USER CODE BEGIN I2C1_EV_IRQn 1 */
-	I2C_Raw_IRQ_CallBack(&I2CSensors);
+	I2C_Alt_IRQ_CallBack(&I2CSensors);
+	//I2C_Raw_IRQ_CallBack(&I2CSensors);
   /* USER CODE END I2C1_EV_IRQn 1 */
 }
 
@@ -552,7 +553,7 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 	if (sr & TIM_SR_CC2IF) {
 		if (TIM12->CCER & TIM_CCER_CC2P) {//полярность 1
 			USMrange.stop = TIM12->CCR2;
-			HC_SR04DistanceSimpleCalc(&USMrange, 340, 65535);
+			HC_SR04DistanceSimpleCalc(&USMrange, 65535);
 			TIM12->CCER &= ~TIM_CCER_CC2P;
 		} else {//полярность 1
 			USMrange.start = TIM12->CCR2;
@@ -580,11 +581,10 @@ void TIM8_UP_TIM13_IRQHandler(void)
 		TIM8->CCR3 = SimpleRamp_IT(TIM8->CCR3, headLightsLevel, 0, 1999, 1);
 		TIM8->SR &= ~TIM_SR_UIF;
 	}
-	sr = 0;
 	sr = TIM13->SR;
 	if (sr & TIM_SR_UIF) {
-		leftWheelPWM = (uint16_t)PID_MotoCalc(Drive.SP.speedLeft, Drive.speedL, 0, 3999, &pidWL);
-		rightWheelPWM = (uint16_t)PID_MotoCalc(Drive.SP.speedRight, Drive.speedR, 0, 3999, &pidWR);
+		leftWheelPWM = (uint16_t)PID_MotoCalc(Drive.SP.speedLeft, Drive.speedL, 0, 3999, 100, &pidWL);
+		rightWheelPWM = (uint16_t)PID_MotoCalc(Drive.SP.speedRight, Drive.speedR, 0, 3999, 100, &pidWR);
 		TIM13->SR &= ~TIM_SR_UIF;
 	}
   /* USER CODE END TIM8_UP_TIM13_IRQn 1 */
@@ -682,7 +682,8 @@ void I2C3_EV_IRQHandler(void)
   /* USER CODE END I2C3_EV_IRQn 0 */
 
   /* USER CODE BEGIN I2C3_EV_IRQn 1 */
-	I2C_Raw_IRQ_CallBack(&I2CLasers);
+	I2C_Alt_IRQ_CallBack(&I2CLasers);
+	//I2C_Raw_IRQ_CallBack(&I2CLasers);
   /* USER CODE END I2C3_EV_IRQn 1 */
 }
 
