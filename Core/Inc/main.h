@@ -41,7 +41,6 @@ extern "C" {
 #include "stm32f4xx_ll_pwr.h"
 #include "stm32f4xx_ll_dma.h"
 #include "stm32f4xx_ll_rng.h"
-#include "stm32f4xx_ll_rtc.h"
 #include "stm32f4xx_ll_spi.h"
 #include "stm32f4xx_ll_tim.h"
 #include "stm32f4xx_ll_usart.h"
@@ -53,28 +52,32 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "HW_Init.h"
-#include "I2C_MiddleLevel/I2C_API.h"
+#include "Function/Function.h"
+#include "I2C_API.h"
 #include "Peripherals/SPI_LowLevel/SPI_HW.h"
 #include "Peripherals/USART_LowLevel/USART_HW.h"
+#include "Quaternions/QuaterFilter.h"
+#include "SG90/SG90.h"
+#include "HC_SR04/HC_SR04.h"
+#include "PID/PID_Wiki/PID_Moto.h"
+#include "PID/SpeedControl/SpeedControl.h"
 #include "ADXL345/ADXL345.h"
 #include "ITG3205/ITG3205.h"
 #include "QMC5883L/QMC5883L.h"
 #include "BME280/BME280.h"
 #include "INA219/INA219.h"
 #include "TCA9548A/TCA9548A.h"
-#include "SG90/SG90.h"
-#include "HC_SR04/HC_SR04.h"
+#include "VL53L0x/VL53L0x.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-	typedef struct Camera {
-		uint16_t posH;
-		uint16_t posV;
-		Servo_t srvLR;
-		Servo_t srvUD;
-	} Camera_t;
+typedef struct Camera {
+	uint16_t posH;
+	uint16_t posV;
+	Servo_t srvLR;
+	Servo_t srvUD;
+} Camera_t;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -91,7 +94,7 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void HardwareInit(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -109,12 +112,12 @@ void Error_Handler(void);
 #define Laser_6_SHUT_GPIO_Port GPIOC
 #define Drive_A1_Pin LL_GPIO_PIN_0
 #define Drive_A1_GPIO_Port GPIOC
-#define Drive_A2_Pin LL_GPIO_PIN_1
-#define Drive_A2_GPIO_Port GPIOC
-#define Drive_B1_Pin LL_GPIO_PIN_2
-#define Drive_B1_GPIO_Port GPIOC
-#define Drive_B2_Pin LL_GPIO_PIN_3
+#define Drive_B2_Pin LL_GPIO_PIN_1
 #define Drive_B2_GPIO_Port GPIOC
+#define Drive_A2_Pin LL_GPIO_PIN_2
+#define Drive_A2_GPIO_Port GPIOC
+#define Drive_B1_Pin LL_GPIO_PIN_3
+#define Drive_B1_GPIO_Port GPIOC
 #define KEY_1_Pin LL_GPIO_PIN_0
 #define KEY_1_GPIO_Port GPIOA
 #define KEY_1_EXTI_IRQn EXTI0_IRQn
@@ -227,6 +230,18 @@ void Error_Handler(void);
 #endif
 
 /* USER CODE BEGIN Private defines */
+#define ADXL_REQ_MASK	0x00000001u
+#define ITG_REQ_MASK	0x00000002u
+#define QMC_REQ_MASK	0x00000004u
+#define BME_REQ_MASK	0x00000008u
+#define INA_REQ_MASK	0x00000010u
+#define PID_CALC_MASK	0x00000020u
+
+#define IMU_POOL_PERIOD	50			//10 msec pool for IMU's sensors: ADXL, ITG and QMC
+#define BME_POOL_PERIOD	5000		//10 sec pool for ambient sensor
+#define INA_POOL_PERIOD	1000		//200 msec pool for power sensor
+//#define PID_CALC_PERIOD	10			//10 msec PID loop calculating
+
 #define SG90_MIN	600
 #define SG90_MAX	2600
 

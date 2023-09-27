@@ -70,7 +70,7 @@ void MX_GPIO_Init(void)
   LL_GPIO_SetOutputPin(GPS_EN_GPIO_Port, GPS_EN_Pin);
 
   /**/
-  LL_GPIO_ResetOutputPin(GPIOC, Drive_A1_Pin|Drive_A2_Pin|Drive_B1_Pin|Drive_B2_Pin);
+  LL_GPIO_ResetOutputPin(GPIOC, Drive_A1_Pin|Drive_B2_Pin|Drive_A2_Pin|Drive_B1_Pin);
 
   /**/
   GPIO_InitStruct.Pin = Laser4_SHUT_Pin|Laser3_SHUT_Pin|Laser5_SHUT_Pin|Laser2_SHUT_Pin
@@ -90,7 +90,7 @@ void MX_GPIO_Init(void)
   LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = Drive_A1_Pin|Drive_A2_Pin|Drive_B1_Pin|Drive_B2_Pin;
+  GPIO_InitStruct.Pin = Drive_A1_Pin|Drive_B2_Pin|Drive_A2_Pin|Drive_B1_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;

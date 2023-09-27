@@ -58,6 +58,9 @@
 /* External variables --------------------------------------------------------*/
 
 /* USER CODE BEGIN EV */
+extern volatile uint32_t mainTimeTick;
+extern volatile uint32_t sensorReqMask;
+extern volatile uint32_t laserReqMask;
 extern I2C_IRQ_Conn_t I2CSensors;
 extern I2C_IRQ_Conn_t I2CLasers;
 extern USART_Conn_t USART_Orange;
@@ -68,10 +71,15 @@ extern SPI_Conn_TWO_t SPI_LoRa;
 extern SPI_Conn_TWO_t SPI_Flash;
 extern Camera_t camera;
 extern HC_SR04_t USMrange;
-extern uint16_t headlightsLevel;
+extern uint16_t headLightsLevel;
 extern uint16_t ambientLightLevel;
 extern uint16_t mcuTemp;
 extern uint16_t mcuVoltage;
+extern Drive_t Drive;
+extern PID_M_t pidWL;
+extern PID_M_t pidWR;
+extern uint16_t leftWheelPWM;
+extern uint16_t rightWheelPWM;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -201,7 +209,16 @@ void SysTick_Handler(void)
   /* USER CODE END SysTick_IRQn 0 */
 
   /* USER CODE BEGIN SysTick_IRQn 1 */
-
+	++mainTimeTick;
+	/*if (mainTimeTick % IMU_POOL_PERIOD == 0) {
+		sensorReqMask |= ADXL_REQ_MASK | ITG_REQ_MASK | QMC_REQ_MASK;
+	}*/
+	if ((mainTimeTick % BME_POOL_PERIOD) == 0) {
+		sensorReqMask |= BME_REQ_MASK;
+	}
+	if ((mainTimeTick % INA_POOL_PERIOD) == 0) {
+		sensorReqMask |= INA_REQ_MASK;
+	}
   /* USER CODE END SysTick_IRQn 1 */
 }
 
@@ -242,7 +259,15 @@ void ADC_IRQHandler(void)
   /* USER CODE END ADC_IRQn 0 */
 
   /* USER CODE BEGIN ADC_IRQn 1 */
-
+	(void) ADC->CSR;
+	volatile uint32_t sr = ADC1->SR;
+	if (sr && ADC_SR_OVR) {//clear overrun
+		ADC1->SR &= ~ADC_SR_OVR;
+	}
+	if (sr && ADC_SR_EOC) {//clear end conversion
+		ambientLightLevel = (uint16_t)ADC1->DR;
+		ADC1->SR &= ~ADC_SR_EOC;
+	}
   /* USER CODE END ADC_IRQn 1 */
 }
 
@@ -304,7 +329,12 @@ void TIM1_BRK_TIM9_IRQHandler(void)
   /* USER CODE END TIM1_BRK_TIM9_IRQn 0 */
 
   /* USER CODE BEGIN TIM1_BRK_TIM9_IRQn 1 */
-
+	volatile uint32_t sr = TIM9->SR;
+	if (sr & TIM_SR_UIF) {
+		TIM9->CCR1 = SimpleRamp_IT(TIM9->CCR1, leftWheelPWM, 0, 3999, 1);
+		TIM9->CCR2 = SimpleRamp_IT(TIM9->CCR2, rightWheelPWM, 0, 3999, 1);
+		TIM9->SR &= ~TIM_SR_UIF;
+	}
   /* USER CODE END TIM1_BRK_TIM9_IRQn 1 */
 }
 
@@ -320,7 +350,7 @@ void TIM1_UP_TIM10_IRQHandler(void)
   /* USER CODE BEGIN TIM1_UP_TIM10_IRQn 1 */
 	volatile uint32_t sr = TIM10->SR;
 	if (sr && TIM_SR_UIF) {
-		TIM10->CCR1 = ServoSetPWM_IT(&camera.srvLR, TIM10->CCR1, camera.posH);
+		TIM10->CCR1 = SimpleRamp_IT(TIM10->CCR1, camera.posH, camera.srvLR.min, camera.srvLR.max, camera.srvLR.step);
 		TIM10->SR &= ~TIM_SR_UIF;
 	}
 
@@ -339,36 +369,10 @@ void TIM1_TRG_COM_TIM11_IRQHandler(void)
   /* USER CODE BEGIN TIM1_TRG_COM_TIM11_IRQn 1 */
 	volatile uint32_t sr = TIM11->SR;
 	if (sr && TIM_SR_UIF) {
-		TIM11->CCR1 = ServoSetPWM_IT(&camera.srvUD, TIM11->CCR1, camera.posV);
+		TIM11->CCR1 = SimpleRamp_IT(TIM11->CCR1, camera.posV, camera.srvUD.min, camera.srvUD.max, camera.srvUD.step);
 		TIM11->SR &= ~TIM_SR_UIF;
 	}
   /* USER CODE END TIM1_TRG_COM_TIM11_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM3 global interrupt.
-  */
-void TIM3_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM3_IRQn 0 */
-
-  /* USER CODE END TIM3_IRQn 0 */
-  /* USER CODE BEGIN TIM3_IRQn 1 */
-
-  /* USER CODE END TIM3_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM4 global interrupt.
-  */
-void TIM4_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM4_IRQn 0 */
-
-  /* USER CODE END TIM4_IRQn 0 */
-  /* USER CODE BEGIN TIM4_IRQn 1 */
-
-  /* USER CODE END TIM4_IRQn 1 */
 }
 
 /**
@@ -381,7 +385,8 @@ void I2C1_EV_IRQHandler(void)
   /* USER CODE END I2C1_EV_IRQn 0 */
 
   /* USER CODE BEGIN I2C1_EV_IRQn 1 */
-	I2C_Raw_IRQ_CallBack(&I2CSensors);
+	I2C_Alt_IRQ_CallBack(&I2CSensors);
+	//I2C_Raw_IRQ_CallBack(&I2CSensors);
   /* USER CODE END I2C1_EV_IRQn 1 */
 }
 
@@ -535,19 +540,6 @@ void EXTI15_10_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles RTC alarms A and B interrupt through EXTI line 17.
-  */
-void RTC_Alarm_IRQHandler(void)
-{
-  /* USER CODE BEGIN RTC_Alarm_IRQn 0 */
-
-  /* USER CODE END RTC_Alarm_IRQn 0 */
-  /* USER CODE BEGIN RTC_Alarm_IRQn 1 */
-
-  /* USER CODE END RTC_Alarm_IRQn 1 */
-}
-
-/**
   * @brief This function handles TIM8 break interrupt and TIM12 global interrupt.
   */
 void TIM8_BRK_TIM12_IRQHandler(void)
@@ -561,7 +553,7 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 	if (sr & TIM_SR_CC2IF) {
 		if (TIM12->CCER & TIM_CCER_CC2P) {//полярность 1
 			USMrange.stop = TIM12->CCR2;
-			HC_SR04DistanceSimpleCalc(&USMrange, 340, 65535);
+			HC_SR04DistanceSimpleCalc(&USMrange, 65535);
 			TIM12->CCER &= ~TIM_CCER_CC2P;
 		} else {//полярность 1
 			USMrange.start = TIM12->CCR2;
@@ -583,17 +575,33 @@ void TIM8_UP_TIM13_IRQHandler(void)
   /* USER CODE END TIM8_UP_TIM13_IRQn 0 */
 
   /* USER CODE BEGIN TIM8_UP_TIM13_IRQn 1 */
-	uint32_t sr = TIM13->SR;
+	volatile uint32_t sr;
+	sr = TIM8->SR;
 	if (sr & TIM_SR_UIF) {
+		TIM8->CCR3 = SimpleRamp_IT(TIM8->CCR3, headLightsLevel, 0, 1999, 1);
+		TIM8->SR &= ~TIM_SR_UIF;
+	}
+	sr = TIM13->SR;
+	if (sr & TIM_SR_UIF) {
+		leftWheelPWM = (uint16_t)PID_MotoCalc(Drive.SP.speedLeft, Drive.speedL, 0, 3999, 100, &pidWL);
+		rightWheelPWM = (uint16_t)PID_MotoCalc(Drive.SP.speedRight, Drive.speedR, 0, 3999, 100, &pidWR);
 		TIM13->SR &= ~TIM_SR_UIF;
 	}
-	if (sr & TIM_SR_CC1IF) {
-		TIM13->SR &= ~TIM_SR_CC1IF;
-	}
-	if (sr & TIM_SR_CC1OF) {
-		TIM13->SR &= ~TIM_SR_CC1OF;
-	}
   /* USER CODE END TIM8_UP_TIM13_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM8 trigger and commutation interrupts and TIM14 global interrupt.
+  */
+void TIM8_TRG_COM_TIM14_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM8_TRG_COM_TIM14_IRQn 0 */
+
+  /* USER CODE END TIM8_TRG_COM_TIM14_IRQn 0 */
+
+  /* USER CODE BEGIN TIM8_TRG_COM_TIM14_IRQn 1 */
+/*TODO ADD clear interrupt code*/
+  /* USER CODE END TIM8_TRG_COM_TIM14_IRQn 1 */
 }
 
 /**
@@ -632,7 +640,11 @@ void TIM6_DAC_IRQHandler(void)
   /* USER CODE END TIM6_DAC_IRQn 0 */
 
   /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
-
+	volatile uint32_t sr;
+	sr = TIM6->SR;
+	if (sr & TIM_SR_UIF ) {
+		TIM6->SR &= ~TIM_SR_UIF;
+	}
   /* USER CODE END TIM6_DAC_IRQn 1 */
 }
 
@@ -645,7 +657,18 @@ void TIM7_IRQHandler(void)
 
   /* USER CODE END TIM7_IRQn 0 */
   /* USER CODE BEGIN TIM7_IRQn 1 */
-
+	uint32_t sr = TIM7->SR;
+	if (sr & TIM_SR_UIF) {
+		uint32_t dtL = TIM3->CNT;
+		TIM3->CNT = 0;
+		uint32_t dtR = TIM4->CNT;
+		TIM4->CNT = 0;
+		uint32_t dt = TIM7->ARR / 1000;
+		Drive.speedL = WheelSpeedMeasure(dtL, dt);
+		Drive.speedR = WheelSpeedMeasure(dtR, dt);
+		/*TODO set new ARR value here*/
+		TIM7->SR &= ~TIM_SR_UIF;
+	}
   /* USER CODE END TIM7_IRQn 1 */
 }
 
@@ -659,7 +682,8 @@ void I2C3_EV_IRQHandler(void)
   /* USER CODE END I2C3_EV_IRQn 0 */
 
   /* USER CODE BEGIN I2C3_EV_IRQn 1 */
-	I2C_Raw_IRQ_CallBack(&I2CLasers);
+	I2C_Alt_IRQ_CallBack(&I2CLasers);
+	//I2C_Raw_IRQ_CallBack(&I2CLasers);
   /* USER CODE END I2C3_EV_IRQn 1 */
 }
 
