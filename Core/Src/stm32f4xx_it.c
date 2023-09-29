@@ -76,8 +76,8 @@ extern uint16_t ambientLightLevel;
 extern uint16_t mcuTemp;
 extern uint16_t mcuVoltage;
 extern Drive_t Drive;
-extern PID_M_t pidWL;
-extern PID_M_t pidWR;
+extern PID_MF_t pidWL;
+extern PID_MF_t pidWR;
 extern uint16_t leftWheelPWM;
 extern uint16_t rightWheelPWM;
 /* USER CODE END EV */
@@ -583,9 +583,13 @@ void TIM8_UP_TIM13_IRQHandler(void)
 	}
 	sr = TIM13->SR;
 	if (sr & TIM_SR_UIF) {
-		leftWheelPWM = (uint16_t)PID_MotoCalc(Drive.SP.speedLeft, Drive.speedL, 0, 3999, 100, &pidWL);
-		rightWheelPWM = (uint16_t)PID_MotoCalc(Drive.SP.speedRight, Drive.speedR, 0, 3999, 100, &pidWR);
+		leftWheelPWM = (uint16_t)PID_MotoFilteredCalc(Drive.SP.pwmLeft, Drive.left.speed, 0, 3999, &pidWL);
+		rightWheelPWM = (uint16_t)PID_MotoFilteredCalc(Drive.SP.pwmRight, Drive.right.speed, 0, 3999, &pidWR);
 		TIM13->SR &= ~TIM_SR_UIF;
+	}
+	if (sr & TIM_SR_CC1IF) {
+		TIM12->CR1 |= TIM_CR1_CEN;
+		TIM13->SR &= ~TIM_SR_CC1IF;
 	}
   /* USER CODE END TIM8_UP_TIM13_IRQn 1 */
 }
@@ -664,8 +668,8 @@ void TIM7_IRQHandler(void)
 		uint32_t dtR = TIM4->CNT;
 		TIM4->CNT = 0;
 		uint32_t dt = TIM7->ARR / 1000;
-		Drive.speedL = WheelSpeedMeasure(dtL, dt);
-		Drive.speedR = WheelSpeedMeasure(dtR, dt);
+		Drive.left.speed = WheelSpeedMeasure(dtL, dt);
+		Drive.right.speed = WheelSpeedMeasure(dtR, dt);
 		/*TODO set new ARR value here*/
 		TIM7->SR &= ~TIM_SR_UIF;
 	}

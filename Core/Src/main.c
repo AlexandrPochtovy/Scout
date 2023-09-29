@@ -82,8 +82,8 @@ extern BME280_t bme280;					//ambient sensor
 extern INA219_t ina219;					//current voltage power sensor
 extern HC_SR04_t USMrange;
 extern Drive_t Drive;
-extern PID_M_t pidWL;
-extern PID_M_t pidWR;
+extern PID_MF_t pidWL;
+extern PID_MF_t pidWR;
 Camera_t camera;		//camera's servo drives
 uint16_t leftWheelPWM = 0;
 uint16_t rightWheelPWM = 0;
@@ -174,21 +174,38 @@ int main(void) {
 			10);
 
 	HardwareInit();
-	PID_MotoInit(20, 5, 1.5, 50, 100, &pidWL);
-	PID_MotoInit(20, 5, 1.5, 50, 100, &pidWR);
+	PID_MotoFilteredInit(10, 5, 2.5, 5, 100, &pidWL);
+	PID_MotoFilteredInit(10, 5, 2.5, 5, 100, &pidWR);
 	uint8_t stbus;
-	//do { stbus = ADXL345_Init(&I2CSensors, &adxl345); } while (!stbus);//init accelerometer
-	//LL_mDelay(1000);
-	//do { stbus = QMC5883L_Init(&I2CSensors, &qmc5883); } while (!stbus);//init magnetometer
-	//LL_mDelay(1000);
-	do {
-		stbus = BME280_Init(&I2CSensors, &bme280);
-	} while (!stbus);	//init ambient sensor
-	do {
-		stbus = INA219_Init(&I2CSensors, &ina219);
-	} while (!stbus);	//init power sensor
-	//do { stbus = ITG3205_Init(&I2CSensors, &itg3205); } while (!stbus);//init gyroscope
-	//LL_mDelay(1000);
+	do { stbus = ADXL345_Init(&I2CSensors, &adxl345); } while (!stbus);					// init accelerometer
+	__NOP();
+	do { stbus = QMC5883L_Init(&I2CSensors, &qmc5883); } while (!stbus);					// init magnetometer
+	__NOP();
+	do { stbus = ITG3205_Init(&I2CSensors, &itg3205); } while (!stbus);					// init gyroscope
+	__NOP();
+	do { stbus = BME280_Init(&I2CSensors, &bme280); } while (!stbus);						// init ambient sensor
+	__NOP();
+	do { stbus = INA219_Init(&I2CSensors, &ina219); } while (!stbus);						// init power sensor
+	__NOP();
+	do { stbus = TCA9548A_Init(&I2CLasers, &tca9548); } while (!stbus);						// init i2c multiplexor
+	__NOP();
+	do { stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH0); } while (!stbus);	// enable channel 0
+	//do { stbus = VL53L0x_Init(&I2CLasers, &LaserBackLeft); } while (!stbus);				// init laser back left
+	__NOP();
+	do { stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH1); } while (!stbus);	// enable channel 1
+	//do { stbus = VL53L0x_Init(&I2CLasers, &LaserBackRight); } while (!stbus);				// init laser back right
+	__NOP();
+	do { stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH2); } while (!stbus);	// enable channel 2
+	//do { stbus = VL53L0x_Init(&I2CLasers, &LaserMidRight); } while (!stbus);				// init laser mid right
+	__NOP();
+	do { stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH3); } while (!stbus);	// enable channel 3
+		//do { stbus = VL53L0x_Init(&I2CLasers, &LaserFrontRight); } while (!stbus);				// init laser front right
+	__NOP();
+	do { stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH4); } while (!stbus);	// enable channel 4
+	//do { stbus = VL53L0x_Init(&I2CLasers, &LaserFrontLeft); } while (!stbus);				// init laser front left
+	__NOP();
+	do { stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH5); } while (!stbus);	// enable channel 5
+	//do { stbus = VL53L0x_Init(&I2CLasers, &LaserMidLeft); } while (!stbus);					// init laser mid left
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -326,10 +343,9 @@ void DriveLeft(void) {
 void HardwareInit(void) {
 
 	TIM3->CCER |= TIM_CCER_CC1E | TIM_CCER_CC2E;
-	//TIM3->DIER |= TIM_DIER_UIE | TIM_DIER_CC2IE;
 	TIM3->CR1 |= TIM_CR1_CEN;
+
 	TIM4->CCER |= TIM_CCER_CC1E | TIM_CCER_CC2E;
-	//TIM4->DIER |= TIM_DIER_UIE | TIM_DIER_CC2IE;
 	TIM4->CR1 |= TIM_CR1_CEN;
 
 	TIM7->DIER |= TIM_DIER_UIE;
@@ -345,7 +361,6 @@ void HardwareInit(void) {
 
 	TIM12->CCER |= TIM_CCER_CC1E | TIM_CCER_CC2E;
 	TIM12->DIER |= TIM_DIER_UIE | TIM_DIER_CC2IE;
-	TIM12->CR1 |= TIM_CR1_CEN;
 
 	TIM8->CCER |= TIM_CCER_CC3E;
 	TIM8->BDTR |= TIM_BDTR_MOE;
@@ -354,6 +369,10 @@ void HardwareInit(void) {
 	TIM9->CCER |= TIM_CCER_CC1E | TIM_CCER_CC2E;
 	TIM9->DIER |= TIM_DIER_UIE;
 	TIM9->CR1 |= TIM_CR1_CEN;
+
+	TIM13->CCER |= TIM_CCER_CC1E;
+	TIM13->DIER |= TIM_DIER_UIE | TIM_DIER_CC1IE;
+	TIM13->CR1 |= TIM_CR1_CEN;
 
 	I2C1->CR2 |= I2C_CR2_ITERREN | I2C_CR2_ITEVTEN;
 	I2C1->CR1 |= I2C_CR1_PE;
