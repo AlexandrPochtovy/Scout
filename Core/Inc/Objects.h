@@ -103,7 +103,7 @@ extern "C" {
 	    10, .errCount = 0, .port = 0x00 };					//i2c multiplexer
 	VL53L0x_t LaserFrontLeft = { .addr = VL53L0x_ADDR_DEFAULT, .status = DEVICE_READY,
 	    .stepL1 = 0, .stepL2 = 0, .stepL3 = 0, .modelID = 0, .revisionID = 0,
-	    .count_timeout = 0, .limit_timeout = 50, .timeoutFlag = 0,
+	    .count_timeout = 0, .limit_timeout = 250, .timeoutFlag = 0,
 	    .stop_variable = 0, .sp_budget_us = 0,
 	    .measurement_timing_budget_us = 0, .spad_count = 0,
 	    .spad_type_is_aperture = 0, .enables = { 0 }, .timeouts = { 0 },
@@ -114,7 +114,7 @@ extern "C" {
 	        0 };
 	VL53L0x_t LaserFrontRight = { .addr = VL53L0x_ADDR_DEFAULT, .status = DEVICE_READY,
 	    .stepL1 = 0, .stepL2 = 0, .stepL3 = 0, .modelID = 0, .revisionID = 0,
-	    .count_timeout = 0, .limit_timeout = 50, .timeoutFlag = 0,
+	    .count_timeout = 0, .limit_timeout = 250, .timeoutFlag = 0,
 	    .stop_variable = 0, .sp_budget_us = 0,
 	    .measurement_timing_budget_us = 0, .spad_count = 0,
 	    .spad_type_is_aperture = 0, .enables = { 0 }, .timeouts = { 0 },
@@ -125,7 +125,7 @@ extern "C" {
 	        0 };
 	VL53L0x_t LaserMidLeft = { .addr = VL53L0x_ADDR_DEFAULT, .status = DEVICE_READY,
 	    .stepL1 = 0, .stepL2 = 0, .stepL3 = 0, .modelID = 0, .revisionID = 0,
-	    .count_timeout = 0, .limit_timeout = 50, .timeoutFlag = 0,
+	    .count_timeout = 0, .limit_timeout = 250, .timeoutFlag = 0,
 	    .stop_variable = 0, .sp_budget_us = 0,
 	    .measurement_timing_budget_us = 0, .spad_count = 0,
 	    .spad_type_is_aperture = 0, .enables = { 0 }, .timeouts = { 0 },
@@ -136,7 +136,7 @@ extern "C" {
 	        0 };
 	VL53L0x_t LaserMidRight = { .addr = VL53L0x_ADDR_DEFAULT, .status = DEVICE_READY,
 	    .stepL1 = 0, .stepL2 = 0, .stepL3 = 0, .modelID = 0, .revisionID = 0,
-	    .count_timeout = 0, .limit_timeout = 50, .timeoutFlag = 0,
+	    .count_timeout = 0, .limit_timeout = 250, .timeoutFlag = 0,
 	    .stop_variable = 0, .sp_budget_us = 0,
 	    .measurement_timing_budget_us = 0, .spad_count = 0,
 	    .spad_type_is_aperture = 0, .enables = { 0 }, .timeouts = { 0 },
@@ -147,7 +147,7 @@ extern "C" {
 	        0 };
 	VL53L0x_t LaserBackLeft = { .addr = VL53L0x_ADDR_DEFAULT, .status = DEVICE_READY,
 	    .stepL1 = 0, .stepL2 = 0, .stepL3 = 0, .modelID = 0, .revisionID = 0,
-	    .count_timeout = 0, .limit_timeout = 50, .timeoutFlag = 0,
+	    .count_timeout = 0, .limit_timeout = 250, .timeoutFlag = 0,
 	    .stop_variable = 0, .sp_budget_us = 0,
 	    .measurement_timing_budget_us = 0, .spad_count = 0,
 	    .spad_type_is_aperture = 0, .enables = { 0 }, .timeouts = { 0 },
@@ -158,7 +158,7 @@ extern "C" {
 	        0 };
 	VL53L0x_t LaserBackRight = { .addr = VL53L0x_ADDR_DEFAULT, .status = DEVICE_READY,
 	    .stepL1 = 0, .stepL2 = 0, .stepL3 = 0, .modelID = 0, .revisionID = 0,
-	    .count_timeout = 0, .limit_timeout = 50, .timeoutFlag = 0,
+	    .count_timeout = 0, .limit_timeout = 250, .timeoutFlag = 0,
 	    .stop_variable = 0, .sp_budget_us = 0,
 	    .measurement_timing_budget_us = 0, .spad_count = 0,
 	    .spad_type_is_aperture = 0, .enables = { 0 }, .timeouts = { 0 },

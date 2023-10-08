@@ -169,77 +169,260 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 	SysTick_Config(SystemCoreClock / 1000);	//1ms tick
 	TIM10->CCR1 = camera.posH = Servo_Init(&camera.srvLR, SG90_MIN, SG90_MAX,
-			10);
+	    10);
 	TIM11->CCR1 = camera.posV = Servo_Init(&camera.srvUD, SG90_MIN, SG90_MAX,
-			10);
+	    10);
 
 	HardwareInit();
 	PID_MotoFilteredInit(10, 5, 2.5, 5, 100, &pidWL);
 	PID_MotoFilteredInit(10, 5, 2.5, 5, 100, &pidWR);
 	uint8_t stbus;
-	do { stbus = ADXL345_Init(&I2CSensors, &adxl345); } while (!stbus);					// init accelerometer
+	do {
+		stbus = TCA9548A_Init(&I2CLasers, &tca9548);
+	} while (!stbus);			// init i2c multiplexor
+	do {
+		stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH0);
+	} while (!stbus);	// enable channel 0
+	do {
+		stbus = VL53L0x_Init(&I2CLasers, &LaserBackLeft);
+	} while (!stbus);				// init laser back left
+	do {
+		stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH1);
+	} while (!stbus);	// enable channel 1
+	do {
+		stbus = VL53L0x_Init(&I2CLasers, &LaserBackRight);
+	} while (!stbus);				// init laser back right
+	do {
+		stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH2);
+	} while (!stbus);	// enable channel 2
+	do {
+		stbus = VL53L0x_Init(&I2CLasers, &LaserMidRight);
+	} while (!stbus);				// init laser mid right
+	do {
+		stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH3);
+	} while (!stbus);	// enable channel 3
+	do {
+		stbus = VL53L0x_Init(&I2CLasers, &LaserFrontRight);
+	} while (!stbus);				// init laser front right
+	do {
+		stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH4);
+	} while (!stbus);	// enable channel 4
+	do {
+		stbus = VL53L0x_Init(&I2CLasers, &LaserFrontLeft);
+	} while (!stbus);				// init laser front left
+	do {
+		stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH5);
+	} while (!stbus);	// enable channel 5
+	do {
+		stbus = VL53L0x_Init(&I2CLasers, &LaserMidLeft);
+	} while (!stbus);					// init laser mid left
+	do {
+		stbus = ADXL345_Init(&I2CSensors, &adxl345);
+	} while (!stbus);			// init accelerometer pass
+	do {
+		stbus = QMC5883L_Init(&I2CSensors, &qmc5883);
+	} while (!stbus);		// init magnetometer pass
+	do {
+		stbus = ITG3205_Init(&I2CSensors, &itg3205);
+	} while (!stbus);			// init gyroscope
+	do {
+		stbus = INA219_Init(&I2CSensors, &ina219);
+	} while (!stbus);				// init power sensor
+	do {
+		stbus = BME280_Init(&I2CSensors, &bme280);
+	} while (!stbus);				// init ambient sensor pass
 	__NOP();
-	do { stbus = QMC5883L_Init(&I2CSensors, &qmc5883); } while (!stbus);					// init magnetometer
-	__NOP();
-	do { stbus = ITG3205_Init(&I2CSensors, &itg3205); } while (!stbus);					// init gyroscope
-	__NOP();
-	do { stbus = BME280_Init(&I2CSensors, &bme280); } while (!stbus);						// init ambient sensor
-	__NOP();
-	do { stbus = INA219_Init(&I2CSensors, &ina219); } while (!stbus);						// init power sensor
-	__NOP();
-	do { stbus = TCA9548A_Init(&I2CLasers, &tca9548); } while (!stbus);						// init i2c multiplexor
-	__NOP();
-	do { stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH0); } while (!stbus);	// enable channel 0
-	//do { stbus = VL53L0x_Init(&I2CLasers, &LaserBackLeft); } while (!stbus);				// init laser back left
-	__NOP();
-	do { stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH1); } while (!stbus);	// enable channel 1
-	//do { stbus = VL53L0x_Init(&I2CLasers, &LaserBackRight); } while (!stbus);				// init laser back right
-	__NOP();
-	do { stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH2); } while (!stbus);	// enable channel 2
-	//do { stbus = VL53L0x_Init(&I2CLasers, &LaserMidRight); } while (!stbus);				// init laser mid right
-	__NOP();
-	do { stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH3); } while (!stbus);	// enable channel 3
-		//do { stbus = VL53L0x_Init(&I2CLasers, &LaserFrontRight); } while (!stbus);				// init laser front right
-	__NOP();
-	do { stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH4); } while (!stbus);	// enable channel 4
-	//do { stbus = VL53L0x_Init(&I2CLasers, &LaserFrontLeft); } while (!stbus);				// init laser front left
-	__NOP();
-	do { stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH5); } while (!stbus);	// enable channel 5
-	//do { stbus = VL53L0x_Init(&I2CLasers, &LaserMidLeft); } while (!stbus);					// init laser mid left
+
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
-		/*if (sensorReqMask && ADXL_REQ_MASK) {
-		 uint8_t st;
-		 st = ADXL345_GetData(&I2CSensors, &adxl345);
-		 if (st) {
-		 sensorReqMask &= ~ADXL_REQ_MASK;
-		 //sensorReqMask |= QMC_REQ_MASK;
-		 }
-		 }*/
-		/* if (sensorReqMask && ITG_REQ_MASK) {
-		 uint8_t st;
-		 st = ITG3205_GetData(&I2CSensors, &itg3205);
-		 if (st) {
-		 BusRequestOff(sensorReqMask, ITG_REQ_MASK);
-		 BusRequestOn(sensorReqMask, QMC_REQ_MASK);
-		 }
-		 }*/
-		/*if (sensorReqMask && QMC_REQ_MASK) {
-		 uint8_t st;
-		 st = QMC5883L_GetData(&I2CSensors, &qmc5883);
-		 if (st) {
-		 BusRequestOff(sensorReqMask, QMC_REQ_MASK);
-		 (void) MadgwickAHRS_9(adxl345.data.X, adxl345.data.Y, adxl345.data.Z, itg3205.data.X, itg3205.data.Y, itg3205.data.X,
-		 qmc5883.data.X, qmc5883.data.Y, qmc5883.data.Z, 100, &basQuat1.quattro);
-		 (void) MahonyAHRS_9(adxl345.data.X, adxl345.data.Y, adxl345.data.Z, itg3205.data.X, itg3205.data.Y, itg3205.data.X,
-		 qmc5883.data.X, qmc5883.data.Y, qmc5883.data.Z, 1, 1, 100, &basQuat2.quattro);
-		 (void) QuaternionCalcHabr_9(adxl345.data.X, adxl345.data.Y, adxl345.data.Z, itg3205.data.X, itg3205.data.Y, itg3205.data.X,
-		 qmc5883.data.X, qmc5883.data.Y, qmc5883.data.Z, 100, &basQuat3.quattro);
-		 }
-		 }*/
+
+		if (laserReqMask) {
+			switch (laserReqMask) {
+			case 1:	// enable channel 0
+				if (TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH0)) {
+					laserReqMask = 2;
+				}
+			case 2:	//
+				if (VL53_StartContinuous(&I2CLasers, &LaserBackLeft, 40)) {
+					laserReqMask = 3;
+				}
+				break;
+			case 3:
+				if (VL53_readRangeContinuousMillimeters(&I2CLasers, &LaserBackLeft)) {
+					laserReqMask = 4;
+				}
+				break;
+			case 4:
+				if (VL53_StopContinuous(&I2CLasers, &LaserBackLeft)) {
+					laserReqMask = 5;
+				}
+				break;
+			case 5:	// enable channel 1
+				if (TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH1)) {
+					laserReqMask = 6;
+				}
+				break;
+			case 6:
+				if (VL53_StartContinuous(&I2CLasers, &LaserBackRight, 40)) {
+					laserReqMask = 7;
+				}
+				break;
+			case 7:
+				if (VL53_readRangeContinuousMillimeters(&I2CLasers, &LaserBackRight)) {
+					laserReqMask = 8;
+				}
+				break;
+			case 8:
+				if (VL53_StopContinuous(&I2CLasers, &LaserBackRight)) {
+					laserReqMask = 9;
+				}
+				break;
+			case 9:	// enable channel 2
+				if (TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH2)) {
+					laserReqMask = 10;
+				}
+				break;
+			case 10:	// init laser mid right
+				if (VL53_StartContinuous(&I2CLasers, &LaserMidRight, 40)) {
+					laserReqMask = 11;
+				}
+				break;
+			case 11:
+				if (VL53_readRangeContinuousMillimeters(&I2CLasers, &LaserMidRight)) {
+					laserReqMask = 12;
+				}
+				break;
+			case 12:
+				if (VL53_StopContinuous(&I2CLasers, &LaserMidRight)) {
+					laserReqMask = 13;
+				}
+				break;
+			case 13:	// enable channel 3
+				if (TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH3)) {
+					laserReqMask = 14;
+				}
+				break;
+			case 14:	// init laser front right
+				if (VL53_StartContinuous(&I2CLasers, &LaserFrontRight, 40)) {
+					laserReqMask = 15;
+				}
+				break;
+			case 15:
+				if (VL53_readRangeContinuousMillimeters(&I2CLasers, &LaserFrontRight)) {
+					laserReqMask = 16;
+				}
+				break;
+			case 16:
+				if (VL53_StopContinuous(&I2CLasers, &LaserFrontRight)) {
+					laserReqMask = 17;
+				}
+				break;
+			case 17:	// enable channel 4
+				if (TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH4)) {
+					laserReqMask = 18;
+				}
+				break;
+			case 18:	// init laser front left
+				if (VL53_StartContinuous(&I2CLasers, &LaserFrontLeft, 40)) {
+					laserReqMask = 19;
+				}
+				break;
+			case 19:
+				if (VL53_readRangeContinuousMillimeters(&I2CLasers, &LaserFrontLeft)) {
+					laserReqMask = 20;
+				}
+				break;
+			case 20:
+				if (VL53_StopContinuous(&I2CLasers, &LaserFrontLeft)) {
+					laserReqMask = 21;
+				}
+				break;
+			case 21:	// enable channel 5
+				if (TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH5)) {
+					laserReqMask = 22;
+				}
+				break;
+			case 22:	// init laser front left
+				if (VL53_StartContinuous(&I2CLasers, &LaserMidLeft, 40)) {
+					laserReqMask = 23;
+				}
+				break;
+			case 23:
+				if (VL53_readRangeContinuousMillimeters(&I2CLasers, &LaserMidLeft)) {
+					laserReqMask = 24;
+				}
+				break;
+			case 24:
+				if (VL53_StopContinuous(&I2CLasers, &LaserMidLeft)) {
+					laserReqMask = 1;
+				}
+				break;
+			default:
+				laserReqMask = 0;
+				break;
+			}
+		}
+		if (sensorReqMask && ADXL_REQ_MASK) {
+			uint8_t st;
+			st = ADXL345_GetData(&I2CSensors, &adxl345);
+			if (st) {
+				sensorReqMask &= ~ADXL_REQ_MASK;
+				sensorReqMask |= QMC_REQ_MASK;
+			}
+		}
+		if (sensorReqMask && ITG_REQ_MASK) {
+			uint8_t st;
+			st = ITG3205_GetData(&I2CSensors, &itg3205);
+			if (st) {
+				sensorReqMask &= ~ITG_REQ_MASK;
+				sensorReqMask |= QMC_REQ_MASK;
+			}
+		}
+		if (sensorReqMask && QMC_REQ_MASK) {
+			uint8_t st;
+			st = QMC5883L_GetData(&I2CSensors, &qmc5883);
+			if (st) {
+				sensorReqMask &= ~QMC_REQ_MASK;
+				(void) MadgwickAHRS_9(adxl345.data.X,
+				    adxl345.data.Y,
+				    adxl345.data.Z,
+				    itg3205.data.X,
+				    itg3205.data.Y,
+				    itg3205.data.X,
+				    qmc5883.data.X,
+				    qmc5883.data.Y,
+				    qmc5883.data.Z,
+				    100,
+				    &basQuat1.quattro);
+				(void) MahonyAHRS_9(adxl345.data.X,
+				    adxl345.data.Y,
+				    adxl345.data.Z,
+				    itg3205.data.X,
+				    itg3205.data.Y,
+				    itg3205.data.X,
+				    qmc5883.data.X,
+				    qmc5883.data.Y,
+				    qmc5883.data.Z,
+				    1,
+				    1,
+				    100,
+				    &basQuat2.quattro);
+				(void) QuaternionCalcHabr_9(adxl345.data.X,
+				    adxl345.data.Y,
+				    adxl345.data.Z,
+				    itg3205.data.X,
+				    itg3205.data.Y,
+				    itg3205.data.X,
+				    qmc5883.data.X,
+				    qmc5883.data.Y,
+				    qmc5883.data.Z,
+				    100,
+				    &basQuat3.quattro);
+			}
+		}
 		if (sensorReqMask && BME_REQ_MASK) {
 			uint8_t st;
 			st = BME280_GetData(&I2CSensors, &bme280);
@@ -293,9 +476,9 @@ void SystemClock_Config(void) {
 	}
 	LL_RCC_HSE_EnableCSS();
 	LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLM_DIV_8, 320,
-			LL_RCC_PLLP_DIV_2);
+	LL_RCC_PLLP_DIV_2);
 	LL_RCC_PLL_ConfigDomain_48M(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLM_DIV_8, 320,
-			LL_RCC_PLLQ_DIV_8);
+	LL_RCC_PLLQ_DIV_8);
 	LL_RCC_PLL_Enable();
 
 	/* Wait till PLL is ready */
@@ -320,7 +503,7 @@ void SystemClock_Config(void) {
 /* USER CODE BEGIN 4 */
 void DriveStop(void) {
 	LL_GPIO_ResetOutputPin(Drive_A1_GPIO_Port,
-			Drive_A1_Pin | Drive_A2_Pin | Drive_B1_Pin | Drive_B2_Pin);
+	Drive_A1_Pin | Drive_A2_Pin | Drive_B1_Pin | Drive_B2_Pin);
 }
 
 void DriveForward(void) {

@@ -239,7 +239,8 @@ void HardwareInit(void);
 
 #define IMU_POOL_PERIOD	50			//10 msec pool for IMU's sensors: ADXL, ITG and QMC
 #define BME_POOL_PERIOD	5000		//10 sec pool for ambient sensor
-#define INA_POOL_PERIOD	1000		//200 msec pool for power sensor
+#define INA_POOL_PERIOD	500		//200 msec pool for power sensor
+#define VL53_POOL_PERIOD	1000		//200 msec pool for power sensor
 //#define PID_CALC_PERIOD	10			//10 msec PID loop calculating
 
 #define SG90_MIN	600

@@ -219,6 +219,9 @@ void SysTick_Handler(void)
 	if ((mainTimeTick % INA_POOL_PERIOD) == 0) {
 		sensorReqMask |= INA_REQ_MASK;
 	}
+	if ((mainTimeTick % VL53_POOL_PERIOD) == 0) {
+		laserReqMask = 1;
+	}
   /* USER CODE END SysTick_IRQn 1 */
 }
 
