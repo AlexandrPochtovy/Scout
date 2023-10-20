@@ -177,45 +177,70 @@ int main(void) {
 	PID_MotoFilteredInit(10, 5, 2.5, 5, 100, &pidWL);
 	PID_MotoFilteredInit(10, 5, 2.5, 5, 100, &pidWR);
 	uint8_t stbus;
+	LL_GPIO_ResetOutputPin(Laser1_SHUT_GPIO_Port, Laser1_SHUT_Pin);
+	LL_mDelay(5);
+	LL_GPIO_SetOutputPin(Laser1_SHUT_GPIO_Port, Laser1_SHUT_Pin);
+	LL_mDelay(5);
+	LL_GPIO_ResetOutputPin(Laser2_SHUT_GPIO_Port, Laser2_SHUT_Pin);
+	LL_mDelay(5);
+	LL_GPIO_SetOutputPin(Laser2_SHUT_GPIO_Port, Laser2_SHUT_Pin);
+	LL_mDelay(5);
+	LL_GPIO_ResetOutputPin(Laser3_SHUT_GPIO_Port, Laser3_SHUT_Pin);
+	LL_mDelay(5);
+	LL_GPIO_SetOutputPin(Laser3_SHUT_GPIO_Port, Laser3_SHUT_Pin);
+	LL_mDelay(5);
+	LL_GPIO_ResetOutputPin(Laser4_SHUT_GPIO_Port, Laser4_SHUT_Pin);
+	LL_mDelay(5);
+	LL_GPIO_SetOutputPin(Laser4_SHUT_GPIO_Port, Laser4_SHUT_Pin);
+	LL_mDelay(5);
+	LL_GPIO_ResetOutputPin(Laser5_SHUT_GPIO_Port, Laser5_SHUT_Pin);
+	LL_mDelay(5);
+	LL_GPIO_SetOutputPin(Laser5_SHUT_GPIO_Port, Laser5_SHUT_Pin);
+	LL_mDelay(5);
+	LL_GPIO_ResetOutputPin(Laser_6_SHUT_GPIO_Port, Laser_6_SHUT_Pin);
+	LL_mDelay(5);
+	LL_GPIO_SetOutputPin(Laser_6_SHUT_GPIO_Port, Laser_6_SHUT_Pin);
+	LL_mDelay(5);
 	do {
-		stbus = TCA9548A_Init(&I2CLasers, &tca9548);
+		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH_OFF);
 	} while (!stbus);			// init i2c multiplexor
 	do {
-		stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH0);
+		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH0);
 	} while (!stbus);	// enable channel 0
+
 	do {
 		stbus = VL53L0x_Init(&I2CLasers, &LaserBackLeft);
 	} while (!stbus);				// init laser back left
 	do {
-		stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH1);
+		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH1);
 	} while (!stbus);	// enable channel 1
 	do {
 		stbus = VL53L0x_Init(&I2CLasers, &LaserBackRight);
 	} while (!stbus);				// init laser back right
 	do {
-		stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH2);
-	} while (!stbus);	// enable channel 2
+		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH2);
+	} while (!stbus);	// enable channel 2*/
 	do {
 		stbus = VL53L0x_Init(&I2CLasers, &LaserMidRight);
 	} while (!stbus);				// init laser mid right
 	do {
-		stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH3);
-	} while (!stbus);	// enable channel 3
+		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH3);
+	} while (!stbus);	// enable channel 3*/
 	do {
 		stbus = VL53L0x_Init(&I2CLasers, &LaserFrontRight);
 	} while (!stbus);				// init laser front right
 	do {
-		stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH4);
-	} while (!stbus);	// enable channel 4
+		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH4);
+	} while (!stbus);	// enable channel 4*/
 	do {
 		stbus = VL53L0x_Init(&I2CLasers, &LaserFrontLeft);
 	} while (!stbus);				// init laser front left
 	do {
-		stbus = TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH5);
-	} while (!stbus);	// enable channel 5
+		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH5);
+	} while (!stbus);	// enable channel 5*/
 	do {
 		stbus = VL53L0x_Init(&I2CLasers, &LaserMidLeft);
-	} while (!stbus);					// init laser mid left
+	} while (!stbus);				// init laser mid left
 	do {
 		stbus = ADXL345_Init(&I2CSensors, &adxl345);
 	} while (!stbus);			// init accelerometer pass
@@ -242,122 +267,153 @@ int main(void) {
 		if (laserReqMask) {
 			switch (laserReqMask) {
 			case 1:	// enable channel 0
-				if (TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH0)) {
+				if (TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH0)) {
 					laserReqMask = 2;
 				}
-			case 2:	//
-				if (VL53_StartContinuous(&I2CLasers, &LaserBackLeft, 40)) {
-					laserReqMask = 3;
+				break;
+			case 2:
+				if (VL53_ReadRangeSingle(&I2CLasers, &LaserBackLeft)) {
+					laserReqMask = 6;
 				}
 				break;
-			case 3:
-				if (VL53_readRangeContinuousMillimeters(&I2CLasers, &LaserBackLeft)) {
+			case 3:	//
+				if (VL53_StartContinuous(&I2CLasers, &LaserBackLeft, 30)) {
 					laserReqMask = 4;
 				}
 				break;
 			case 4:
-				if (VL53_StopContinuous(&I2CLasers, &LaserBackLeft)) {
+				if (VL53_readRangeContinuousMillimeters(&I2CLasers, &LaserBackLeft)) {
 					laserReqMask = 5;
 				}
 				break;
-			case 5:	// enable channel 1
-				if (TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH1)) {
+			case 5:
+				if (VL53_StopContinuous(&I2CLasers, &LaserBackLeft)) {
 					laserReqMask = 6;
 				}
 				break;
-			case 6:
-				if (VL53_StartContinuous(&I2CLasers, &LaserBackRight, 40)) {
+			case 6:	// enable channel 1
+				if (TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH1)) {
 					laserReqMask = 7;
 				}
 				break;
 			case 7:
-				if (VL53_readRangeContinuousMillimeters(&I2CLasers, &LaserBackRight)) {
-					laserReqMask = 8;
-				}
-				break;
-			case 8:
-				if (VL53_StopContinuous(&I2CLasers, &LaserBackRight)) {
-					laserReqMask = 9;
-				}
-				break;
-			case 9:	// enable channel 2
-				if (TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH2)) {
-					laserReqMask = 10;
-				}
-				break;
-			case 10:	// init laser mid right
-				if (VL53_StartContinuous(&I2CLasers, &LaserMidRight, 40)) {
+				if (VL53_ReadRangeSingle(&I2CLasers, &LaserBackRight)) {
 					laserReqMask = 11;
 				}
 				break;
-			case 11:
-				if (VL53_readRangeContinuousMillimeters(&I2CLasers, &LaserMidRight)) {
+			case 8:
+				if (VL53_StartContinuous(&I2CLasers, &LaserBackRight, 30)) {
+					laserReqMask = 9;
+				}
+				break;
+			case 9:
+				if (VL53_readRangeContinuousMillimeters(&I2CLasers, &LaserBackRight)) {
+					laserReqMask = 10;
+				}
+				break;
+			case 10:
+				if (VL53_StopContinuous(&I2CLasers, &LaserBackRight)) {
+					laserReqMask = 11;
+				}
+				break;
+			case 11:	// enable channel 2
+				if (TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH2)) {
 					laserReqMask = 12;
 				}
 				break;
 			case 12:
-				if (VL53_StopContinuous(&I2CLasers, &LaserMidRight)) {
-					laserReqMask = 13;
+				if (VL53_ReadRangeSingle(&I2CLasers, &LaserMidRight)) {
+					laserReqMask = 16;
 				}
 				break;
-			case 13:	// enable channel 3
-				if (TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH3)) {
+			case 13:	// init laser mid right
+				if (VL53_StartContinuous(&I2CLasers, &LaserMidRight, 30)) {
 					laserReqMask = 14;
 				}
 				break;
-			case 14:	// init laser front right
-				if (VL53_StartContinuous(&I2CLasers, &LaserFrontRight, 40)) {
+			case 14:
+				if (VL53_readRangeContinuousMillimeters(&I2CLasers, &LaserMidRight)) {
 					laserReqMask = 15;
 				}
 				break;
 			case 15:
-				if (VL53_readRangeContinuousMillimeters(&I2CLasers, &LaserFrontRight)) {
+				if (VL53_StopContinuous(&I2CLasers, &LaserMidRight)) {
 					laserReqMask = 16;
 				}
 				break;
-			case 16:
-				if (VL53_StopContinuous(&I2CLasers, &LaserFrontRight)) {
+			case 16:	// enable channel 3
+				if (TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH3)) {
 					laserReqMask = 17;
 				}
 				break;
-			case 17:	// enable channel 4
-				if (TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH4)) {
-					laserReqMask = 18;
+			case 17:
+				if (VL53_ReadRangeSingle(&I2CLasers, &LaserFrontRight)) {
+					laserReqMask = 21;
 				}
 				break;
-			case 18:	// init laser front left
-				if (VL53_StartContinuous(&I2CLasers, &LaserFrontLeft, 40)) {
+			case 18:	// init laser front right
+				if (VL53_StartContinuous(&I2CLasers, &LaserFrontRight, 30)) {
 					laserReqMask = 19;
 				}
 				break;
 			case 19:
-				if (VL53_readRangeContinuousMillimeters(&I2CLasers, &LaserFrontLeft)) {
+				if (VL53_readRangeContinuousMillimeters(&I2CLasers, &LaserFrontRight)) {
 					laserReqMask = 20;
 				}
 				break;
 			case 20:
-				if (VL53_StopContinuous(&I2CLasers, &LaserFrontLeft)) {
+				if (VL53_StopContinuous(&I2CLasers, &LaserFrontRight)) {
 					laserReqMask = 21;
 				}
 				break;
-			case 21:	// enable channel 5
-				if (TCA9548A_OnChannels(&I2CLasers, &tca9548, TCA9548A_CH5)) {
+			case 21:	// enable channel 4
+				if (TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH4)) {
 					laserReqMask = 22;
 				}
 				break;
-			case 22:	// init laser front left
-				if (VL53_StartContinuous(&I2CLasers, &LaserMidLeft, 40)) {
-					laserReqMask = 23;
+			case 22:
+				if (VL53_ReadRangeSingle(&I2CLasers, &LaserFrontLeft)) {
+					laserReqMask = 26;
 				}
 				break;
-			case 23:
-				if (VL53_readRangeContinuousMillimeters(&I2CLasers, &LaserMidLeft)) {
+			case 23:	// init laser front left
+				if (VL53_StartContinuous(&I2CLasers, &LaserFrontLeft, 30)) {
 					laserReqMask = 24;
 				}
 				break;
 			case 24:
+				if (VL53_readRangeContinuousMillimeters(&I2CLasers, &LaserFrontLeft)) {
+					laserReqMask = 25;
+				}
+				break;
+			case 25:
+				if (VL53_StopContinuous(&I2CLasers, &LaserFrontLeft)) {
+					laserReqMask = 26;
+				}
+				break;
+			case 26:	// enable channel 5
+				if (TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH5)) {
+					laserReqMask = 27;
+				}
+				break;
+			case 27:
+				if (VL53_ReadRangeSingle(&I2CLasers, &LaserMidLeft)) {
+					laserReqMask = 0;
+				}
+				break;
+			case 28:	// init laser front left
+				if (VL53_StartContinuous(&I2CLasers, &LaserMidLeft, 30)) {
+					laserReqMask = 29;
+				}
+				break;
+			case 29:
+				if (VL53_readRangeContinuousMillimeters(&I2CLasers, &LaserMidLeft)) {
+					laserReqMask = 30;
+				}
+				break;
+			case 30:
 				if (VL53_StopContinuous(&I2CLasers, &LaserMidLeft)) {
-					laserReqMask = 1;
+					laserReqMask = 0;
 				}
 				break;
 			default:

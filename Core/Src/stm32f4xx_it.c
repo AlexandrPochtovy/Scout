@@ -210,9 +210,9 @@ void SysTick_Handler(void)
 
   /* USER CODE BEGIN SysTick_IRQn 1 */
 	++mainTimeTick;
-	/*if (mainTimeTick % IMU_POOL_PERIOD == 0) {
+	if (mainTimeTick % IMU_POOL_PERIOD == 0) {
 		sensorReqMask |= ADXL_REQ_MASK | ITG_REQ_MASK | QMC_REQ_MASK;
-	}*/
+	}
 	if ((mainTimeTick % BME_POOL_PERIOD) == 0) {
 		sensorReqMask |= BME_REQ_MASK;
 	}
@@ -586,8 +586,8 @@ void TIM8_UP_TIM13_IRQHandler(void)
 	}
 	sr = TIM13->SR;
 	if (sr & TIM_SR_UIF) {
-		leftWheelPWM = (uint16_t)PID_MotoFilteredCalc(Drive.SP.pwmLeft, Drive.left.speed, 0, 3999, &pidWL);
-		rightWheelPWM = (uint16_t)PID_MotoFilteredCalc(Drive.SP.pwmRight, Drive.right.speed, 0, 3999, &pidWR);
+		leftWheelPWM = (uint16_t)PID_MotoFilteredCalc(Drive.SP.pwmLeft, Drive.WL.speed, 0, 3999, &pidWL);
+		rightWheelPWM = (uint16_t)PID_MotoFilteredCalc(Drive.SP.pwmRight, Drive.WR.speed, 0, 3999, &pidWR);
 		TIM13->SR &= ~TIM_SR_UIF;
 	}
 	if (sr & TIM_SR_CC1IF) {
@@ -671,8 +671,8 @@ void TIM7_IRQHandler(void)
 		uint32_t dtR = TIM4->CNT;
 		TIM4->CNT = 0;
 		uint32_t dt = TIM7->ARR / 1000;
-		Drive.left.speed = WheelSpeedMeasure(dtL, dt);
-		Drive.right.speed = WheelSpeedMeasure(dtR, dt);
+		Drive.WL.speed = WheelSpeedMeasure(dtL, dt);
+		Drive.WR.speed = WheelSpeedMeasure(dtR, dt);
 		/*TODO set new ARR value here*/
 		TIM7->SR &= ~TIM_SR_UIF;
 	}

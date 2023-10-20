@@ -111,7 +111,7 @@ extern "C" {
 	    .new_pre_range_timeout_mclks = 0, .new_msrc_timeout_mclks = 0,
 	    .new_final_range_timeout_mclks = 0, .vcselPeriodValue = 0,
 	    .ref_spad_map = { 0 }, .tmp8 = 0, .tmp16 = 0, .range = 0, .smoothRange =
-	        0 };
+	        0, .errLimit = 10 };
 	VL53L0x_t LaserFrontRight = { .addr = VL53L0x_ADDR_DEFAULT, .status = DEVICE_READY,
 	    .stepL1 = 0, .stepL2 = 0, .stepL3 = 0, .modelID = 0, .revisionID = 0,
 	    .count_timeout = 0, .limit_timeout = 250, .timeoutFlag = 0,
@@ -122,7 +122,7 @@ extern "C" {
 	    .new_pre_range_timeout_mclks = 0, .new_msrc_timeout_mclks = 0,
 	    .new_final_range_timeout_mclks = 0, .vcselPeriodValue = 0,
 	    .ref_spad_map = { 0 }, .tmp8 = 0, .tmp16 = 0, .range = 0, .smoothRange =
-	        0 };
+	        0, .errLimit = 10 };
 	VL53L0x_t LaserMidLeft = { .addr = VL53L0x_ADDR_DEFAULT, .status = DEVICE_READY,
 	    .stepL1 = 0, .stepL2 = 0, .stepL3 = 0, .modelID = 0, .revisionID = 0,
 	    .count_timeout = 0, .limit_timeout = 250, .timeoutFlag = 0,
@@ -133,7 +133,7 @@ extern "C" {
 	    .new_pre_range_timeout_mclks = 0, .new_msrc_timeout_mclks = 0,
 	    .new_final_range_timeout_mclks = 0, .vcselPeriodValue = 0,
 	    .ref_spad_map = { 0 }, .tmp8 = 0, .tmp16 = 0, .range = 0, .smoothRange =
-	        0 };
+	        0, .errLimit = 10 };
 	VL53L0x_t LaserMidRight = { .addr = VL53L0x_ADDR_DEFAULT, .status = DEVICE_READY,
 	    .stepL1 = 0, .stepL2 = 0, .stepL3 = 0, .modelID = 0, .revisionID = 0,
 	    .count_timeout = 0, .limit_timeout = 250, .timeoutFlag = 0,
@@ -144,7 +144,7 @@ extern "C" {
 	    .new_pre_range_timeout_mclks = 0, .new_msrc_timeout_mclks = 0,
 	    .new_final_range_timeout_mclks = 0, .vcselPeriodValue = 0,
 	    .ref_spad_map = { 0 }, .tmp8 = 0, .tmp16 = 0, .range = 0, .smoothRange =
-	        0 };
+	        0, .errLimit = 10 };
 	VL53L0x_t LaserBackLeft = { .addr = VL53L0x_ADDR_DEFAULT, .status = DEVICE_READY,
 	    .stepL1 = 0, .stepL2 = 0, .stepL3 = 0, .modelID = 0, .revisionID = 0,
 	    .count_timeout = 0, .limit_timeout = 250, .timeoutFlag = 0,
@@ -155,7 +155,7 @@ extern "C" {
 	    .new_pre_range_timeout_mclks = 0, .new_msrc_timeout_mclks = 0,
 	    .new_final_range_timeout_mclks = 0, .vcselPeriodValue = 0,
 	    .ref_spad_map = { 0 }, .tmp8 = 0, .tmp16 = 0, .range = 0, .smoothRange =
-	        0 };
+	        0, .errLimit = 10 };
 	VL53L0x_t LaserBackRight = { .addr = VL53L0x_ADDR_DEFAULT, .status = DEVICE_READY,
 	    .stepL1 = 0, .stepL2 = 0, .stepL3 = 0, .modelID = 0, .revisionID = 0,
 	    .count_timeout = 0, .limit_timeout = 250, .timeoutFlag = 0,
@@ -166,7 +166,7 @@ extern "C" {
 	    .new_pre_range_timeout_mclks = 0, .new_msrc_timeout_mclks = 0,
 	    .new_final_range_timeout_mclks = 0, .vcselPeriodValue = 0,
 	    .ref_spad_map = { 0 }, .tmp8 = 0, .tmp16 = 0, .range = 0, .smoothRange =
-	        0 };
+	        0, .errLimit = 10 };
 
 	ADXL345_t adxl345 = { .addr = ADXL345_ADDR, .status = DEVICE_READY, .errLimit = 10,
 	    .step = 0, .data = { 0 }, .raw = { 0 } };		//accelerometer
@@ -186,7 +186,7 @@ extern "C" {
 										.step = 0,
 										.position.x = 0,
 										.position.y = 0,
-										.speedRobot = 0,
+										.speed = 0,
 										.distance = 0,
 										.fullPath = 0,
 										.intLength = 0,
