@@ -82,8 +82,8 @@ extern BME280_t bme280;					//ambient sensor
 extern INA219_t ina219;					//current voltage power sensor
 extern HC_SR04_t USMrange;
 extern Drive_t Drive;
-extern PID_MF_t pidWL;
-extern PID_MF_t pidWR;
+extern pidF_t pidWL;
+extern pidF_t pidWR;
 Camera_t camera;		//camera's servo drives
 uint16_t leftWheelPWM = 0;
 uint16_t rightWheelPWM = 0;
@@ -100,11 +100,9 @@ extern struct commonQ basQuat6;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-void DriveStop(void);
-void DriveForward(void);
-void DriveBackward(void);
-void DriveRight(void);
-void DriveLeft(void);
+void WheelStop(GPIO_TypeDef *port, uint32_t pin1, uint32_t pin2);
+void WheelForward(GPIO_TypeDef *port, uint32_t pinA, uint32_t pinB);
+void WheelBackward(GPIO_TypeDef *port, uint32_t pinA, uint32_t pinB);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -174,8 +172,8 @@ int main(void) {
 	    10);
 
 	HardwareInit();
-	PID_MotoFilteredInit(10, 5, 2.5, 5, 100, &pidWL);
-	PID_MotoFilteredInit(10, 5, 2.5, 5, 100, &pidWR);
+	PidFiltered_Init(10, 5, 2.5, 5, 100, &pidWL);
+	PidFiltered_Init(10, 5, 2.5, 5, 100, &pidWR);
 	uint8_t stbus;
 	LL_GPIO_ResetOutputPin(Laser1_SHUT_GPIO_Port, Laser1_SHUT_Pin);
 	LL_mDelay(5);
@@ -490,10 +488,30 @@ int main(void) {
 			uint8_t st;
 			st = INA219_GetData(&I2CSensors, &ina219);
 			if (st) {
-				BusRequestOff(sensorReqMask, INA_REQ_MASK);
+				sensorReqMask &= ~INA_REQ_MASK;
 			}
 		}
-		DriveForward();
+
+		Drive.WL.speedSP = WheelSpeedZeroLimiter(Drive.WL.speedSP, Drive.SP.pwmLeft, 1.0, 2.0);
+		Drive.WR.speedSP = WheelSpeedZeroLimiter(Drive.WR.speedSP, Drive.SP.pwmRight, 1.0, 2.0);
+		//if (Drive.WR.speedSP > 0) {
+			WheelForward(Drive_A1_GPIO_Port, Drive_A1_Pin, Drive_A2_Pin);
+		//}
+		/*else if (Drive.WR.speedSP < 0) {
+			WheelBackward(Drive_A1_GPIO_Port, Drive_A1_Pin, Drive_A2_Pin);
+		}
+		else {
+			WheelStop(Drive_A1_GPIO_Port, Drive_A1_Pin, Drive_A2_Pin);
+		}*/
+		//if (Drive.WL.speedSP > 0) {
+			WheelForward(Drive_B1_GPIO_Port, Drive_B1_Pin, Drive_B2_Pin);
+		//}
+		/*else if (Drive.WL.speedSP < 0) {
+			WheelBackward(Drive_B1_GPIO_Port, Drive_B1_Pin, Drive_B2_Pin);
+		}
+		else {
+			WheelStop(Drive_B1_GPIO_Port, Drive_B1_Pin, Drive_B2_Pin);
+		}*/
 		//int32_t tmp = 1000 - (ambientLightLevel - 100) / 2;
 		//headlightsLevel = Min(tmp, 0);
 		//headlightsLevel = Max(tmp, 1000);
@@ -557,26 +575,17 @@ void SystemClock_Config(void) {
 }
 
 /* USER CODE BEGIN 4 */
-void DriveStop(void) {
-	LL_GPIO_ResetOutputPin(Drive_A1_GPIO_Port,
-	Drive_A1_Pin | Drive_A2_Pin | Drive_B1_Pin | Drive_B2_Pin);
+void WheelStop(GPIO_TypeDef *port, uint32_t pin1, uint32_t pin2) {
+	LL_GPIO_ResetOutputPin(port, pin1 | pin2);
 }
 
-void DriveForward(void) {
-	LL_GPIO_ResetOutputPin(Drive_A1_GPIO_Port, Drive_A2_Pin | Drive_B2_Pin);
-	LL_GPIO_SetOutputPin(Drive_A1_GPIO_Port, Drive_A1_Pin | Drive_B1_Pin);
+void WheelForward(GPIO_TypeDef *port, uint32_t pin1, uint32_t pin2) {
+	LL_GPIO_ResetOutputPin(port, pin2);
+	LL_GPIO_SetOutputPin(port, pin1);
 }
-void GoBackward(void) {
-	LL_GPIO_ResetOutputPin(Drive_A1_GPIO_Port, Drive_A1_Pin | Drive_B1_Pin);
-	LL_GPIO_SetOutputPin(Drive_A1_GPIO_Port, Drive_A2_Pin | Drive_B2_Pin);
-}
-void GoRight(void) {
-	LL_GPIO_ResetOutputPin(Drive_A1_GPIO_Port, Drive_A1_Pin | Drive_B2_Pin);
-	LL_GPIO_SetOutputPin(Drive_A1_GPIO_Port, Drive_A2_Pin | Drive_B1_Pin);
-}
-void DriveLeft(void) {
-	LL_GPIO_ResetOutputPin(Drive_A1_GPIO_Port, Drive_A2_Pin | Drive_B1_Pin);
-	LL_GPIO_SetOutputPin(Drive_A1_GPIO_Port, Drive_A1_Pin | Drive_B2_Pin);
+void WheelBackward(GPIO_TypeDef *port, uint32_t pin1, uint32_t pin2) {
+	LL_GPIO_ResetOutputPin(port, pin1);
+	LL_GPIO_SetOutputPin(port, pin2);
 }
 
 void HardwareInit(void) {

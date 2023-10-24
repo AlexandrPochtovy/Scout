@@ -76,8 +76,8 @@ extern uint16_t ambientLightLevel;
 extern uint16_t mcuTemp;
 extern uint16_t mcuVoltage;
 extern Drive_t Drive;
-extern PID_MF_t pidWL;
-extern PID_MF_t pidWR;
+extern pidF_t pidWL;
+extern pidF_t pidWR;
 extern uint16_t leftWheelPWM;
 extern uint16_t rightWheelPWM;
 /* USER CODE END EV */
@@ -334,8 +334,8 @@ void TIM1_BRK_TIM9_IRQHandler(void)
   /* USER CODE BEGIN TIM1_BRK_TIM9_IRQn 1 */
 	volatile uint32_t sr = TIM9->SR;
 	if (sr & TIM_SR_UIF) {
-		TIM9->CCR1 = SimpleRamp_IT(TIM9->CCR1, leftWheelPWM, 0, 3999, 1);
-		TIM9->CCR2 = SimpleRamp_IT(TIM9->CCR2, rightWheelPWM, 0, 3999, 1);
+		TIM9->CCR1 = SimpleRamp_IT(TIM9->CCR1, rightWheelPWM, 0, 3999, 1);
+		TIM9->CCR2 = SimpleRamp_IT(TIM9->CCR2, leftWheelPWM, 0, 3999, 1);
 		TIM9->SR &= ~TIM_SR_UIF;
 	}
   /* USER CODE END TIM1_BRK_TIM9_IRQn 1 */
@@ -586,12 +586,12 @@ void TIM8_UP_TIM13_IRQHandler(void)
 	}
 	sr = TIM13->SR;
 	if (sr & TIM_SR_UIF) {
-		leftWheelPWM = (uint16_t)PID_MotoFilteredCalc(Drive.SP.pwmLeft, Drive.WL.speed, 0, 3999, &pidWL);
-		rightWheelPWM = (uint16_t)PID_MotoFilteredCalc(Drive.SP.pwmRight, Drive.WR.speed, 0, 3999, &pidWR);
+		leftWheelPWM = (uint16_t)PidFiltered_Processing(Drive.WL.speedSP, Drive.WL.speedAct, 100, 0, 3999, &pidWL);
+		rightWheelPWM = (uint16_t)PidFiltered_Processing(Drive.WR.speedSP, Drive.WR.speedAct, 100, 0, 3999, &pidWR);
 		TIM13->SR &= ~TIM_SR_UIF;
 	}
 	if (sr & TIM_SR_CC1IF) {
-		TIM12->CR1 |= TIM_CR1_CEN;
+		//TIM12->CR1 |= TIM_CR1_CEN;
 		TIM13->SR &= ~TIM_SR_CC1IF;
 	}
   /* USER CODE END TIM8_UP_TIM13_IRQn 1 */
@@ -666,14 +666,15 @@ void TIM7_IRQHandler(void)
   /* USER CODE BEGIN TIM7_IRQn 1 */
 	uint32_t sr = TIM7->SR;
 	if (sr & TIM_SR_UIF) {
-		uint32_t dtL = TIM3->CNT;
+		uint32_t dtR = TIM3->CNT;
 		TIM3->CNT = 0;
-		uint32_t dtR = TIM4->CNT;
+		uint32_t dtL = TIM4->CNT;
 		TIM4->CNT = 0;
-		uint32_t dt = TIM7->ARR / 1000;
-		Drive.WL.speed = WheelSpeedMeasure(dtL, dt);
-		Drive.WR.speed = WheelSpeedMeasure(dtR, dt);
+		uint32_t dt = (TIM7->ARR + 1) / 100;
+		Drive.WL.speedAct = WheelSpeedMeasure(dtL, dt);
+		Drive.WR.speedAct = WheelSpeedMeasure(dtR, dt);
 		/*TODO set new ARR value here*/
+		TIM12->CR1 |= TIM_CR1_CEN;
 		TIM7->SR &= ~TIM_SR_UIF;
 	}
   /* USER CODE END TIM7_IRQn 1 */

@@ -60,6 +60,7 @@ extern "C" {
 #include "SG90/SG90.h"
 #include "HC_SR04/HC_SR04.h"
 #include "PID/PID_Wiki/PID_Moto.h"
+#include "PID/PID_Wiki/PID_Simple.h"
 #include "PID/SpeedControl/SpeedControl.h"
 #include "ADXL345/ADXL345.h"
 #include "ITG3205/ITG3205.h"

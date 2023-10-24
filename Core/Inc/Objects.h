@@ -199,8 +199,8 @@ extern "C" {
 										.SP.target.y = 0,
 										.SP.pwmLeft = 0,
 										.SP.pwmRight = 0 };
-	PID_MF_t pidWL = { 0 };
-	PID_MF_t pidWR = { 0 };
+	pidF_t pidWL = { 0 };
+	pidF_t pidWR = { 0 };
 
 	struct commonQ {
 		Quaternion_t quattro;
