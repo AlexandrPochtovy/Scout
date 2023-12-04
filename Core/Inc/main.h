@@ -56,11 +56,16 @@ extern "C" {
 #include "I2C_API.h"
 #include "Peripherals/SPI_LowLevel/SPI_HW.h"
 #include "Peripherals/USART_LowLevel/USART_HW.h"
-#include "Quaternions/QuaterFilter.h"
+#include "Quaternions/Converters/Converters.h"
+#include "Quaternions/MadgwickAHRS/MadgwickAHRS.h"
+#include "Quaternions/MahonyAHRS/MahonyAHRS.h"
+#include "Quaternions/HABR/Habr.h"
+#include "Fusion/Fusion.h"
 #include "SG90/SG90.h"
 #include "HC_SR04/HC_SR04.h"
+#include "PID/AVR_PID/pid.h"
 #include "PID/PID_Wiki/PID_Moto.h"
-#include "PID/PID_Wiki/PID_Simple.h"
+#include "PID/PID_Simple/PID_Simple.h"
 #include "PID/SpeedControl/SpeedControl.h"
 #include "ADXL345/ADXL345.h"
 #include "ITG3205/ITG3205.h"
@@ -99,18 +104,22 @@ void HardwareInit(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define Laser4_SHUT_Pin LL_GPIO_PIN_2
-#define Laser4_SHUT_GPIO_Port GPIOE
+#define Laser1_SHUT_Pin LL_GPIO_PIN_1
+#define Laser1_SHUT_GPIO_Port GPIOE
+#define Laser2_SHUT_Pin LL_GPIO_PIN_0
+#define Laser2_SHUT_GPIO_Port GPIOE
 #define Laser3_SHUT_Pin LL_GPIO_PIN_3
 #define Laser3_SHUT_GPIO_Port GPIOE
+#define Laser4_SHUT_Pin LL_GPIO_PIN_2
+#define Laser4_SHUT_GPIO_Port GPIOE
 #define Laser5_SHUT_Pin LL_GPIO_PIN_4
 #define Laser5_SHUT_GPIO_Port GPIOE
+#define Laser6_SHUT_Pin LL_GPIO_PIN_13
+#define Laser6_SHUT_GPIO_Port GPIOC
 #define DRIVE1_PWM_Pin LL_GPIO_PIN_5
 #define DRIVE1_PWM_GPIO_Port GPIOE
 #define DRIVE2_PWM_Pin LL_GPIO_PIN_6
 #define DRIVE2_PWM_GPIO_Port GPIOE
-#define Laser_6_SHUT_Pin LL_GPIO_PIN_13
-#define Laser_6_SHUT_GPIO_Port GPIOC
 #define Drive_A1_Pin LL_GPIO_PIN_0
 #define Drive_A1_GPIO_Port GPIOC
 #define Drive_B2_Pin LL_GPIO_PIN_1
@@ -213,10 +222,7 @@ void HardwareInit(void);
 #define TIM10_CamServoLR_GPIO_Port GPIOB
 #define TIM11_CamServoUD_Pin LL_GPIO_PIN_9
 #define TIM11_CamServoUD_GPIO_Port GPIOB
-#define Laser2_SHUT_Pin LL_GPIO_PIN_0
-#define Laser2_SHUT_GPIO_Port GPIOE
-#define Laser1_SHUT_Pin LL_GPIO_PIN_1
-#define Laser1_SHUT_GPIO_Port GPIOE
+
 #ifndef NVIC_PRIORITYGROUP_0
 #define NVIC_PRIORITYGROUP_0         ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority,
                                                                  4 bits for subpriority */
@@ -237,12 +243,13 @@ void HardwareInit(void);
 #define BME_REQ_MASK	0x00000008u
 #define INA_REQ_MASK	0x00000010u
 #define PID_CALC_MASK	0x00000020u
+#define LIGHT_EN_MASK	0x00000040u
 
-#define IMU_POOL_PERIOD	500			//10 msec pool for IMU's sensors: ADXL, ITG and QMC
-#define BME_POOL_PERIOD	5000		//10 sec pool for ambient sensor
-#define INA_POOL_PERIOD	500		//200 msec pool for power sensor
-#define VL53_POOL_PERIOD	1000		//200 msec pool for power sensor
-//#define PID_CALC_PERIOD	10			//10 msec PID loop calculating
+#define IMU_POOL_PERIOD		50		//50 msec pool for IMU's sensors: ADXL, ITG and QMC
+#define BME_POOL_PERIOD		5000	//5 sec pool for ambient sensor
+#define INA_POOL_PERIOD		500		//500 msec pool for power sensor
+#define VL53_POOL_PERIOD	35		//35 msec pool for power sensor
+#define PID_CALC_PERIOD		10		//10 msec PID loop calculating
 
 #define SG90_MIN	600
 #define SG90_MAX	2600

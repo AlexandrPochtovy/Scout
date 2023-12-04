@@ -51,23 +51,23 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-//variables for time based
+//variables for time based-----------------------------------------------------
 volatile uint32_t mainTimeTick = 0;
-volatile uint32_t sensorReqMask = 0;
-volatile uint32_t laserReqMask = 0;
-uint16_t headLightsLevel = 0;
-uint16_t ambientLightLevel = 0;
-uint16_t mcuTemp = 0;
-uint16_t mcuVoltage = 0;
 
+//variables for enable sensor request and other options------------------------
+volatile uint32_t DevicesEnableMask = 0;
+volatile uint32_t laserReqMask = 0;
+uint32_t optionMask = 0;
+//objects: IO ports
 extern I2C_IRQ_Conn_t I2CSensors;		//i2c1 bus for sensors
 extern I2C_IRQ_Conn_t I2CLasers;		//i2c3 bus for VL53L01 sensors
 extern SPI_Conn_TWO_t SPI_LoRa;			//SPI1 for LoRa radio
 extern SPI_Conn_TWO_t SPI_Flash;		//SPI3 for flash
-extern USART_Conn_t USART_Orange;	//usart1 bus for Orange Pi Zero2 connection
-extern USART_Conn_t USART_CLI;			//usart2 bus for external connection CLI
-extern USART_Conn_t USART_UNO;		//usart3 bus for external connection Arduino
-extern USART_Conn_t UART_GPS;				//uart5 bus for GPS connection
+extern USART_FullDuplex_t USART_Orange;	//usart1 bus for Orange Pi Zero2 connection
+extern USART_FullDuplex_t USART_CLI;			//usart2 bus for external connection CLI
+extern USART_FullDuplex_t USART_UNO;		//usart3 bus for external connection
+extern USART_FullDuplex_t UART_GPS;				//uart5 bus for GPS connection
+//sensors----------------------------------------------------------------------
 extern TCA9548A_t tca9548;					//i2c multiplexer
 extern VL53L0x_t LaserFrontLeft;		//laser sensor VL53L01 front left place
 extern VL53L0x_t LaserFrontRight;		//laser sensor VL53L01 front left place
@@ -81,25 +81,49 @@ extern QMC5883L_t qmc5883; 				//magnetometer
 extern BME280_t bme280;					//ambient sensor
 extern INA219_t ina219;					//current voltage power sensor
 extern HC_SR04_t USMrange;
+//objects------------------------------------------------------------------------
 extern Drive_t Drive;
-extern pidF_t pidWL;
-extern pidF_t pidWR;
+extern pidData_t PidAVR_L;
+extern pidData_t PidAVR_R;
+extern pidS_t PidSimple_L;
+extern pidS_t PidSimple_R;
+extern pidF_t PidFilter_L;
+extern pidF_t PidFilter_R;
+extern PID_M_t PidMoto_L;
+extern PID_M_t PidMoto_R;
+extern PID_MF_t PidMotoFilter_L;
+extern PID_MF_t PidMotoFilter_R;
 Camera_t camera;		//camera's servo drives
-uint16_t leftWheelPWM = 0;
-uint16_t rightWheelPWM = 0;
-//extern Quaternion_t quattro;
-//extern EulerAngles_t mainAngles;
-extern struct commonQ basQuat1;
-extern struct commonQ basQuat2;
-extern struct commonQ basQuat3;
-extern struct commonQ basQuat4;
-extern struct commonQ basQuat5;
-extern struct commonQ basQuat6;
+uint16_t leftWheelPWM;
+uint16_t rightWheelPWM;
+Quaternion_t quatHabr;
+EulerAngles_t angHabr;
+Quaternion_t quatMadg;
+EulerAngles_t angMadg;
+Quaternion_t quatMah;
+EulerAngles_t angMah;
+FusionEuler euler;
+FusionAhrs ahrs;
+
+uint16_t headLightsLevel = 0;
+uint16_t ambientLightLevel = 0;
+uint16_t mcuTemp = 0;
+uint16_t mcuVoltage = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
+static inline void EnableOption(uint32_t reg, uint32_t option) {
+	SET_BIT(reg, option);
+}
+static inline void DisableOption(uint32_t reg, uint32_t option) {
+	CLEAR_BIT(reg, option);
+}
+static inline uint32_t IsOptionEnable(uint32_t reg, uint32_t option) {
+	return reg & option;
+}
+uint16_t SideLightsControl(uint16_t ambient, uint8_t en);
 void WheelStop(GPIO_TypeDef *port, uint32_t pin1, uint32_t pin2);
 void WheelForward(GPIO_TypeDef *port, uint32_t pinA, uint32_t pinB);
 void WheelBackward(GPIO_TypeDef *port, uint32_t pinA, uint32_t pinB);
@@ -172,35 +196,21 @@ int main(void) {
 	    10);
 
 	HardwareInit();
-	PidFiltered_Init(10, 5, 2.5, 5, 100, &pidWL);
-	PidFiltered_Init(10, 5, 2.5, 5, 100, &pidWR);
+	PidFilteredInit(10, 5, 2.5, 5, 100, &PidFilter_L);
+	PidFilteredInit(10, 5, 2.5, 5, 100, &PidFilter_R);
+
 	uint8_t stbus;
-	LL_GPIO_ResetOutputPin(Laser1_SHUT_GPIO_Port, Laser1_SHUT_Pin);
+	LL_GPIO_ResetOutputPin(Laser1_SHUT_GPIO_Port, Laser1_SHUT_Pin | Laser2_SHUT_Pin | Laser3_SHUT_Pin |
+			Laser4_SHUT_Pin | Laser5_SHUT_Pin);
+	LL_GPIO_ResetOutputPin(Laser6_SHUT_GPIO_Port, Laser6_SHUT_Pin);
 	LL_mDelay(5);
-	LL_GPIO_SetOutputPin(Laser1_SHUT_GPIO_Port, Laser1_SHUT_Pin);
-	LL_mDelay(5);
-	LL_GPIO_ResetOutputPin(Laser2_SHUT_GPIO_Port, Laser2_SHUT_Pin);
-	LL_mDelay(5);
-	LL_GPIO_SetOutputPin(Laser2_SHUT_GPIO_Port, Laser2_SHUT_Pin);
-	LL_mDelay(5);
-	LL_GPIO_ResetOutputPin(Laser3_SHUT_GPIO_Port, Laser3_SHUT_Pin);
-	LL_mDelay(5);
-	LL_GPIO_SetOutputPin(Laser3_SHUT_GPIO_Port, Laser3_SHUT_Pin);
-	LL_mDelay(5);
-	LL_GPIO_ResetOutputPin(Laser4_SHUT_GPIO_Port, Laser4_SHUT_Pin);
-	LL_mDelay(5);
-	LL_GPIO_SetOutputPin(Laser4_SHUT_GPIO_Port, Laser4_SHUT_Pin);
-	LL_mDelay(5);
-	LL_GPIO_ResetOutputPin(Laser5_SHUT_GPIO_Port, Laser5_SHUT_Pin);
-	LL_mDelay(5);
-	LL_GPIO_SetOutputPin(Laser5_SHUT_GPIO_Port, Laser5_SHUT_Pin);
-	LL_mDelay(5);
-	LL_GPIO_ResetOutputPin(Laser_6_SHUT_GPIO_Port, Laser_6_SHUT_Pin);
-	LL_mDelay(5);
-	LL_GPIO_SetOutputPin(Laser_6_SHUT_GPIO_Port, Laser_6_SHUT_Pin);
+	LL_GPIO_SetOutputPin(Laser1_SHUT_GPIO_Port, Laser1_SHUT_Pin | Laser2_SHUT_Pin | Laser3_SHUT_Pin |
+			Laser4_SHUT_Pin | Laser5_SHUT_Pin);
+	LL_GPIO_SetOutputPin(Laser6_SHUT_GPIO_Port, Laser6_SHUT_Pin);
 	LL_mDelay(5);
 	do {
-		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH_OFF);
+		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, ~(TCA9548A_CH0 || TCA9548A_CH1 || TCA9548A_CH2 || TCA9548A_CH3 ||
+		    TCA9548A_CH4 || TCA9548A_CH5 || TCA9548A_CH6 || TCA9548A_CH7));
 	} while (!stbus);			// init i2c multiplexor
 	do {
 		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH0);
@@ -254,8 +264,7 @@ int main(void) {
 	do {
 		stbus = BME280_Init(&I2CSensors, &bme280);
 	} while (!stbus);				// init ambient sensor pass
-	__NOP();
-
+	FusionAhrsInitialise(&ahrs);
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -419,110 +428,84 @@ int main(void) {
 				break;
 			}
 		}
-		if (sensorReqMask && ADXL_REQ_MASK) {
+
+		if (IsOptionEnable(DevicesEnableMask, ADXL_REQ_MASK)) {
 			uint8_t st;
 			st = ADXL345_GetData(&I2CSensors, &adxl345);
 			if (st) {
-				sensorReqMask &= ~ADXL_REQ_MASK;
-				sensorReqMask |= QMC_REQ_MASK;
+				DisableOption(DevicesEnableMask, ADXL_REQ_MASK);
+				EnableOption(DevicesEnableMask, QMC_REQ_MASK);
 			}
 		}
-		if (sensorReqMask && ITG_REQ_MASK) {
+		if (IsOptionEnable(DevicesEnableMask, ITG_REQ_MASK)) {
 			uint8_t st;
 			st = ITG3205_GetData(&I2CSensors, &itg3205);
 			if (st) {
-				sensorReqMask &= ~ITG_REQ_MASK;
-				sensorReqMask |= QMC_REQ_MASK;
+				DisableOption(DevicesEnableMask, ITG_REQ_MASK);
+				EnableOption(DevicesEnableMask, QMC_REQ_MASK);
 			}
 		}
-		if (sensorReqMask && QMC_REQ_MASK) {
+		if (IsOptionEnable(DevicesEnableMask, QMC_REQ_MASK)) {
 			uint8_t st;
 			st = QMC5883L_GetData(&I2CSensors, &qmc5883);
 			if (st) {
-				sensorReqMask &= ~QMC_REQ_MASK;
-				(void) MadgwickAHRS_9(adxl345.data.X,
-				    adxl345.data.Y,
-				    adxl345.data.Z,
-				    itg3205.data.X,
-				    itg3205.data.Y,
-				    itg3205.data.X,
-				    qmc5883.data.X,
-				    qmc5883.data.Y,
-				    qmc5883.data.Z,
-				    100,
-				    &basQuat1.quattro);
-				(void) MahonyAHRS_9(adxl345.data.X,
-				    adxl345.data.Y,
-				    adxl345.data.Z,
-				    itg3205.data.X,
-				    itg3205.data.Y,
-				    itg3205.data.X,
-				    qmc5883.data.X,
-				    qmc5883.data.Y,
-				    qmc5883.data.Z,
-				    1,
-				    1,
-				    100,
-				    &basQuat2.quattro);
-				(void) QuaternionCalcHabr_9(adxl345.data.X,
-				    adxl345.data.Y,
-				    adxl345.data.Z,
-				    itg3205.data.X,
-				    itg3205.data.Y,
-				    itg3205.data.X,
-				    qmc5883.data.X,
-				    qmc5883.data.Y,
-				    qmc5883.data.Z,
-				    100,
-				    &basQuat3.quattro);
+				quatMadg = MadgwickAHRSupdate(itg3205.data.X, itg3205.data.Y, -itg3205.data.Z,
+														adxl345.data.X, adxl345.data.Y, adxl345.data.Z,
+														qmc5883.data.X, qmc5883.data.Y, qmc5883.data.Z);
+				angMadg = ToEulerAngles(quatMadg, 1);
+
+				quatMah = MahonyAHRSupdate(itg3205.data.X, itg3205.data.Y, -itg3205.data.Z,
+					adxl345.data.X, adxl345.data.Y, adxl345.data.Z,
+					qmc5883.data.X, qmc5883.data.Y, qmc5883.data.Z);
+				angMah = ToEulerAngles(quatMah, 1);
+				quatHabr = AHRSUpdate9(itg3205.data.X, itg3205.data.Y, -itg3205.data.Z,
+														adxl345.data.X, adxl345.data.Y, adxl345.data.Z,
+														qmc5883.data.X, qmc5883.data.Y, qmc5883.data.Z, 0.05);
+				angHabr = ToEulerAngles(quatHabr, 1);
+				FusionVector gyro;
+				gyro.axis.x = itg3205.data.X;
+				gyro.axis.y = itg3205.data.Y;
+				gyro.axis.z = -itg3205.data.Z;
+				FusionVector accel;
+				accel.axis.x = RadiansToDegrees(adxl345.data.X);
+				accel.axis.y = RadiansToDegrees(adxl345.data.Y);
+				accel.axis.z = RadiansToDegrees(adxl345.data.Z);
+				FusionVector mag;
+				mag.axis.x = qmc5883.data.X;
+				mag.axis.y = qmc5883.data.Y;
+				mag.axis.z = qmc5883.data.Z;
+				FusionAhrsUpdate(&ahrs, gyro, accel, mag, 0.05);
+				euler = FusionQuaternionToEuler(FusionAhrsGetQuaternion(&ahrs));
+				DisableOption(DevicesEnableMask, QMC_REQ_MASK);
 			}
 		}
-		if (sensorReqMask && BME_REQ_MASK) {
+		if (IsOptionEnable(DevicesEnableMask, BME_REQ_MASK)) {
 			uint8_t st;
 			st = BME280_GetData(&I2CSensors, &bme280);
 			if (st) {
-				sensorReqMask &= ~BME_REQ_MASK;
+				DisableOption(DevicesEnableMask, BME_REQ_MASK);
 			}
 		}
-		if (sensorReqMask && INA_REQ_MASK) {
+		if (IsOptionEnable(DevicesEnableMask, INA_REQ_MASK)) {
 			uint8_t st;
 			st = INA219_GetData(&I2CSensors, &ina219);
 			if (st) {
-				sensorReqMask &= ~INA_REQ_MASK;
+				DisableOption(DevicesEnableMask, INA_REQ_MASK);
 			}
 		}
 
 		Drive.WL.speedSP = WheelSpeedZeroLimiter(Drive.WL.speedSP, Drive.SP.pwmLeft, 1.0, 2.0);
 		Drive.WR.speedSP = WheelSpeedZeroLimiter(Drive.WR.speedSP, Drive.SP.pwmRight, 1.0, 2.0);
-		//if (Drive.WR.speedSP > 0) {
-			WheelForward(Drive_A1_GPIO_Port, Drive_A1_Pin, Drive_A2_Pin);
-		//}
-		/*else if (Drive.WR.speedSP < 0) {
-			WheelBackward(Drive_A1_GPIO_Port, Drive_A1_Pin, Drive_A2_Pin);
-		}
-		else {
-			WheelStop(Drive_A1_GPIO_Port, Drive_A1_Pin, Drive_A2_Pin);
-		}*/
-		//if (Drive.WL.speedSP > 0) {
-			WheelForward(Drive_B1_GPIO_Port, Drive_B1_Pin, Drive_B2_Pin);
-		//}
-		/*else if (Drive.WL.speedSP < 0) {
-			WheelBackward(Drive_B1_GPIO_Port, Drive_B1_Pin, Drive_B2_Pin);
-		}
-		else {
-			WheelStop(Drive_B1_GPIO_Port, Drive_B1_Pin, Drive_B2_Pin);
-		}*/
-		//int32_t tmp = 1000 - (ambientLightLevel - 100) / 2;
-		//headlightsLevel = Min(tmp, 0);
-		//headlightsLevel = Max(tmp, 1000);
-		//TIM8->CCR3 = headlightsLevel;
+		WheelForward(Drive_A1_GPIO_Port, Drive_A1_Pin, Drive_A2_Pin);
+		WheelForward(Drive_B1_GPIO_Port, Drive_B1_Pin, Drive_B2_Pin);
 
+		TIM8->CCR3 = headLightsLevel = SideLightsControl(ambientLightLevel, 1);
 		//CCR1 - right
 		//CCR2 - left
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
-		//LL_IWDG_ReloadCounter(IWDG);
+		LL_IWDG_ReloadCounter(IWDG);
 	}
 	/* USER CODE END 3 */
 }
@@ -575,6 +558,14 @@ void SystemClock_Config(void) {
 }
 
 /* USER CODE BEGIN 4 */
+uint16_t SideLightsControl(uint16_t ambient, uint8_t en) {
+	if (en) {
+		return 500;
+	} else {
+		return 0;
+	}
+}
+
 void WheelStop(GPIO_TypeDef *port, uint32_t pin1, uint32_t pin2) {
 	LL_GPIO_ResetOutputPin(port, pin1 | pin2);
 }

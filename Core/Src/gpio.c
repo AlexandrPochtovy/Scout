@@ -58,7 +58,7 @@ void MX_GPIO_Init(void)
                           |Laser1_SHUT_Pin);
 
   /**/
-  LL_GPIO_SetOutputPin(GPIOC, Laser_6_SHUT_Pin|LoRa_RST_Pin);
+  LL_GPIO_SetOutputPin(GPIOC, Laser6_SHUT_Pin|LoRa_RST_Pin);
 
   /**/
   LL_GPIO_SetOutputPin(LED_GPIO_Port, LED_Pin);
@@ -82,7 +82,7 @@ void MX_GPIO_Init(void)
   LL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = Laser_6_SHUT_Pin|LoRa_RST_Pin;
+  GPIO_InitStruct.Pin = Laser6_SHUT_Pin|LoRa_RST_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
