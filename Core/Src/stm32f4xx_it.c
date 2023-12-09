@@ -211,7 +211,7 @@ void PendSV_Handler(void)
 /**
  * @brief This function handles System tick timer.
  */
-void SysTick_Handler(void)
+void SysTick_Handler(void)//1 msec period
 {
 	/* USER CODE BEGIN SysTick_IRQn 0 */
 
@@ -333,6 +333,7 @@ void EXTI9_5_IRQHandler(void)
 
 /**
  * @brief This function handles TIM1 break interrupt and TIM9 global interrupt.
+ * TIM9 drive PWM 0.5 msec period
  */
 void TIM1_BRK_TIM9_IRQHandler(void)
 {
@@ -343,8 +344,8 @@ void TIM1_BRK_TIM9_IRQHandler(void)
 	/* USER CODE BEGIN TIM1_BRK_TIM9_IRQn 1 */
 	volatile uint32_t sr = TIM9->SR;
 	if (sr & TIM_SR_UIF) {
-		TIM9->CCR1 = SimpleRamp_IT(TIM9->CCR1, rightWheelPWM, 0, 3999, 1);
-		TIM9->CCR2 = SimpleRamp_IT(TIM9->CCR2, leftWheelPWM, 0, 3999, 1);
+		TIM9->CCR1 = CurveRamp_IT(TIM9->CCR1, rightWheelPWM, 0, 3999);
+		TIM9->CCR2 = CurveRamp_IT(TIM9->CCR2, leftWheelPWM, 0, 3999);
 		TIM9->SR &= ~TIM_SR_UIF;
 	}
 	/* USER CODE END TIM1_BRK_TIM9_IRQn 1 */
@@ -621,10 +622,9 @@ void TIM8_UP_TIM13_IRQHandler(void)
 			rightWheelPWM = PID_MotoFilteredProcessing(Drive.WR.speedSP, Drive.WR.speedAct, 100, 0, 3999, &PidMotoFilter_R);
 			break;
 		default:
-			rightWheelPWM = leftWheelPWM = 0;
+			//rightWheelPWM = leftWheelPWM = 0;
 			break;
 		}
-
 		TIM13->SR &= ~TIM_SR_UIF;
 	}
 	if (sr & TIM_SR_CC1IF) {
@@ -703,14 +703,13 @@ void TIM7_IRQHandler(void)
 	/* USER CODE BEGIN TIM7_IRQn 1 */
 	uint32_t sr = TIM7->SR;
 	if (sr & TIM_SR_UIF) {
-		uint32_t dtR = TIM3->CNT;
+		Drive.WR.pulses = TIM3->CNT;
 		TIM3->CNT = 0;
-		uint32_t dtL = TIM4->CNT;
+		Drive.WL.pulses = TIM4->CNT;
 		TIM4->CNT = 0;
 		uint32_t dt = (TIM7->ARR + 1) / 100;
-		Drive.WL.speedAct = WheelSpeedMeasure(dtL, dt);
-		Drive.WR.speedAct = WheelSpeedMeasure(dtR, dt);
-		/*TODO set new ARR value here*/
+		Drive.WL.speedAct = WheelSpeedMeasure(Drive.WL.pulses, dt);
+		Drive.WR.speedAct = WheelSpeedMeasure(Drive.WR.pulses, dt);
 		TIM12->CR1 |= TIM_CR1_CEN;
 		TIM7->SR &= ~TIM_SR_UIF;
 	}

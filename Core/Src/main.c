@@ -196,8 +196,15 @@ int main(void) {
 	    10);
 
 	HardwareInit();
+
+	PidSimpleInit(10, 2.5, 0.5, 100, &PidSimple_L);
+	PidSimpleInit(10, 2.5, 0.5, 100, &PidSimple_R);
 	PidFilteredInit(10, 5, 2.5, 5, 100, &PidFilter_L);
 	PidFilteredInit(10, 5, 2.5, 5, 100, &PidFilter_R);
+	PID_MotoInit(10, 2.5, 0.5, 5, 100, &PidMoto_L);
+	PID_MotoInit(10, 2.5, 0.5, 5, 100, &PidMoto_R);
+	PID_MotoFilteredInit(10, 2.5, 0.5, 5, 100, &PidMotoFilter_L);
+	PID_MotoFilteredInit(10, 2.5, 0.5, 5, 100, &PidMotoFilter_R);
 
 	uint8_t stbus;
 	LL_GPIO_ResetOutputPin(Laser1_SHUT_GPIO_Port, Laser1_SHUT_Pin | Laser2_SHUT_Pin | Laser3_SHUT_Pin |
@@ -208,7 +215,7 @@ int main(void) {
 			Laser4_SHUT_Pin | Laser5_SHUT_Pin);
 	LL_GPIO_SetOutputPin(Laser6_SHUT_GPIO_Port, Laser6_SHUT_Pin);
 	LL_mDelay(5);
-	do {
+	/*do {
 		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, ~(TCA9548A_CH0 || TCA9548A_CH1 || TCA9548A_CH2 || TCA9548A_CH3 ||
 		    TCA9548A_CH4 || TCA9548A_CH5 || TCA9548A_CH6 || TCA9548A_CH7));
 	} while (!stbus);			// init i2c multiplexor
@@ -227,25 +234,25 @@ int main(void) {
 	} while (!stbus);				// init laser back right
 	do {
 		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH2);
-	} while (!stbus);	// enable channel 2*/
+	} while (!stbus);	// enable channel 2
 	do {
 		stbus = VL53L0x_Init(&I2CLasers, &LaserMidRight);
 	} while (!stbus);				// init laser mid right
 	do {
 		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH3);
-	} while (!stbus);	// enable channel 3*/
+	} while (!stbus);	// enable channel 3
 	do {
 		stbus = VL53L0x_Init(&I2CLasers, &LaserFrontRight);
 	} while (!stbus);				// init laser front right
 	do {
 		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH4);
-	} while (!stbus);	// enable channel 4*/
+	} while (!stbus);	// enable channel 4
 	do {
 		stbus = VL53L0x_Init(&I2CLasers, &LaserFrontLeft);
 	} while (!stbus);				// init laser front left
 	do {
 		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH5);
-	} while (!stbus);	// enable channel 5*/
+	} while (!stbus);	// enable channel 5
 	do {
 		stbus = VL53L0x_Init(&I2CLasers, &LaserMidLeft);
 	} while (!stbus);				// init laser mid left
@@ -258,12 +265,14 @@ int main(void) {
 	do {
 		stbus = ITG3205_Init(&I2CSensors, &itg3205);
 	} while (!stbus);			// init gyroscope
+
 	do {
 		stbus = INA219_Init(&I2CSensors, &ina219);
 	} while (!stbus);				// init power sensor
 	do {
 		stbus = BME280_Init(&I2CSensors, &bme280);
 	} while (!stbus);				// init ambient sensor pass
+
 	FusionAhrsInitialise(&ahrs);
 	/* USER CODE END 2 */
 
@@ -271,7 +280,7 @@ int main(void) {
 	/* USER CODE BEGIN WHILE */
 	while (1) {
 
-		if (laserReqMask) {
+		/*if (laserReqMask) {
 			switch (laserReqMask) {
 			case 1:	// enable channel 0
 				if (TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH0)) {
@@ -428,8 +437,8 @@ int main(void) {
 				break;
 			}
 		}
-
-		if (IsOptionEnable(DevicesEnableMask, ADXL_REQ_MASK)) {
+*/
+		/*if (IsOptionEnable(DevicesEnableMask, ADXL_REQ_MASK)) {
 			uint8_t st;
 			st = ADXL345_GetData(&I2CSensors, &adxl345);
 			if (st) {
@@ -478,8 +487,8 @@ int main(void) {
 				euler = FusionQuaternionToEuler(FusionAhrsGetQuaternion(&ahrs));
 				DisableOption(DevicesEnableMask, QMC_REQ_MASK);
 			}
-		}
-		if (IsOptionEnable(DevicesEnableMask, BME_REQ_MASK)) {
+		}*/
+		/*if (IsOptionEnable(DevicesEnableMask, BME_REQ_MASK)) {
 			uint8_t st;
 			st = BME280_GetData(&I2CSensors, &bme280);
 			if (st) {
@@ -492,7 +501,7 @@ int main(void) {
 			if (st) {
 				DisableOption(DevicesEnableMask, INA_REQ_MASK);
 			}
-		}
+		}*/
 
 		Drive.WL.speedSP = WheelSpeedZeroLimiter(Drive.WL.speedSP, Drive.SP.pwmLeft, 1.0, 2.0);
 		Drive.WR.speedSP = WheelSpeedZeroLimiter(Drive.WR.speedSP, Drive.SP.pwmRight, 1.0, 2.0);
