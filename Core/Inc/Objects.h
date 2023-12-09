@@ -318,12 +318,6 @@ extern "C" {
 	  .SP.target.y = 0,
 	  .SP.pwmLeft = 0,
 	  .SP.pwmRight = 0 };
-	pidData_t PidAVR_L = {0};
-	pidData_t PidAVR_R = {0};
-	pidS_t PidSimple_L = {0};
-	pidS_t PidSimple_R = {0};
-	pidF_t PidFilter_L = {0};
-	pidF_t PidFilter_R = {0};
 	PID_M_t PidMoto_L = {0};
 	PID_M_t PidMoto_R = {0};
 	PID_MF_t PidMotoFilter_L = {0};

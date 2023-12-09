@@ -63,7 +63,6 @@ extern "C" {
 #include "Fusion/Fusion.h"
 #include "SG90/SG90.h"
 #include "HC_SR04/HC_SR04.h"
-#include "PID/AVR_PID/pid.h"
 #include "PID/PID_Wiki/PID_Moto.h"
 #include "PID/PID_Simple/PID_Simple.h"
 #include "PID/SpeedControl/SpeedControl.h"
