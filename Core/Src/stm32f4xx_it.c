@@ -77,12 +77,6 @@ extern uint16_t mcuTemp;
 extern uint16_t mcuVoltage;
 extern Drive_t Drive;
 extern Drive_t Drive;
-extern pidData_t PidAVR_L;
-extern pidData_t PidAVR_R;
-extern pidS_t PidSimple_L;
-extern pidS_t PidSimple_R;
-extern pidF_t PidFilter_L;
-extern pidF_t PidFilter_R;
 extern PID_M_t PidMoto_L;
 extern PID_M_t PidMoto_R;
 extern PID_MF_t PidMotoFilter_L;
@@ -597,38 +591,12 @@ void TIM8_UP_TIM13_IRQHandler(void)
 	}
 	sr = TIM13->SR;
 	if (sr & TIM_SR_UIF) {
-		switch (pidSelect) {
-		case 0:
-			rightWheelPWM = leftWheelPWM = 0;
-			break;
-		case 1:
-			leftWheelPWM = Max(Min(pid_Controller(Drive.WL.speedSP, Drive.WL.speedAct, &PidAVR_L), 0), 3999);
-			rightWheelPWM = Max(Min(pid_Controller(Drive.WR.speedSP, Drive.WR.speedAct, &PidAVR_R), 0), 3999);
-			break;
-		case 2:
-			leftWheelPWM = PidSimpleProcessing(Drive.WL.speedSP, Drive.WL.speedAct, 0, 3999, &PidSimple_L);
-			rightWheelPWM = PidSimpleProcessing(Drive.WR.speedSP, Drive.WR.speedAct, 0, 3999, &PidSimple_R);
-			break;
-		case 3:
-			leftWheelPWM = PidFilteredProcessing(Drive.WL.speedSP, Drive.WL.speedAct, 100, 0, 3999, &PidFilter_L);
-			rightWheelPWM = PidFilteredProcessing(Drive.WR.speedSP, Drive.WR.speedAct, 100, 0, 3999, &PidFilter_R);
-			break;
-		case 4:
-			leftWheelPWM = PID_MotoProcessing(Drive.WL.speedSP, Drive.WL.speedAct, 0, 3999, 100, &PidMoto_L);
-			rightWheelPWM = PID_MotoProcessing(Drive.WR.speedSP, Drive.WR.speedAct, 0, 3999, 100, &PidMoto_R);
-			break;
-		case 5:
-			leftWheelPWM = PID_MotoFilteredProcessing(Drive.WL.speedSP, Drive.WL.speedAct, 100, 0, 3999,  &PidMotoFilter_L);
-			rightWheelPWM = PID_MotoFilteredProcessing(Drive.WR.speedSP, Drive.WR.speedAct, 100, 0, 3999, &PidMotoFilter_R);
-			break;
-		default:
-			//rightWheelPWM = leftWheelPWM = 0;
-			break;
-		}
+			leftWheelPWM = PID_MotoProcessing(Drive.WL.speedSP, Drive.WL.speedAct, 0, 3999, 25, &PidMoto_L);
+			rightWheelPWM = PID_MotoProcessing(Drive.WR.speedSP, Drive.WR.speedAct, 0, 3999, 25, &PidMoto_R);
 		TIM13->SR &= ~TIM_SR_UIF;
 	}
 	if (sr & TIM_SR_CC1IF) {
-		//TIM12->CR1 |= TIM_CR1_CEN;
+		TIM12->CR1 |= TIM_CR1_CEN;
 		TIM13->SR &= ~TIM_SR_CC1IF;
 	}
 	/* USER CODE END TIM8_UP_TIM13_IRQn 1 */

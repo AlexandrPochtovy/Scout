@@ -83,12 +83,6 @@ extern INA219_t ina219;					//current voltage power sensor
 extern HC_SR04_t USMrange;
 //objects------------------------------------------------------------------------
 extern Drive_t Drive;
-extern pidData_t PidAVR_L;
-extern pidData_t PidAVR_R;
-extern pidS_t PidSimple_L;
-extern pidS_t PidSimple_R;
-extern pidF_t PidFilter_L;
-extern pidF_t PidFilter_R;
 extern PID_M_t PidMoto_L;
 extern PID_M_t PidMoto_R;
 extern PID_MF_t PidMotoFilter_L;
@@ -197,14 +191,8 @@ int main(void) {
 
 	HardwareInit();
 
-	PidSimpleInit(10, 2.5, 0.5, 100, &PidSimple_L);
-	PidSimpleInit(10, 2.5, 0.5, 100, &PidSimple_R);
-	PidFilteredInit(10, 5, 2.5, 5, 100, &PidFilter_L);
-	PidFilteredInit(10, 5, 2.5, 5, 100, &PidFilter_R);
-	PID_MotoInit(10, 2.5, 0.5, 5, 100, &PidMoto_L);
-	PID_MotoInit(10, 2.5, 0.5, 5, 100, &PidMoto_R);
-	PID_MotoFilteredInit(10, 2.5, 0.5, 5, 100, &PidMotoFilter_L);
-	PID_MotoFilteredInit(10, 2.5, 0.5, 5, 100, &PidMotoFilter_R);
+	PID_MotoInit(6, 16, 0.75, 25, &PidMoto_L);
+	PID_MotoInit(6, 16, 0.75, 25, &PidMoto_R);
 
 	uint8_t stbus;
 	LL_GPIO_ResetOutputPin(Laser1_SHUT_GPIO_Port, Laser1_SHUT_Pin | Laser2_SHUT_Pin | Laser3_SHUT_Pin |
@@ -215,7 +203,7 @@ int main(void) {
 			Laser4_SHUT_Pin | Laser5_SHUT_Pin);
 	LL_GPIO_SetOutputPin(Laser6_SHUT_GPIO_Port, Laser6_SHUT_Pin);
 	LL_mDelay(5);
-	/*do {
+	do {
 		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, ~(TCA9548A_CH0 || TCA9548A_CH1 || TCA9548A_CH2 || TCA9548A_CH3 ||
 		    TCA9548A_CH4 || TCA9548A_CH5 || TCA9548A_CH6 || TCA9548A_CH7));
 	} while (!stbus);			// init i2c multiplexor
@@ -223,40 +211,40 @@ int main(void) {
 		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH0);
 	} while (!stbus);	// enable channel 0
 
-	do {
+	/*do {
 		stbus = VL53L0x_Init(&I2CLasers, &LaserBackLeft);
-	} while (!stbus);				// init laser back left
+	} while (!stbus);	*/			// init laser back left
 	do {
 		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH1);
 	} while (!stbus);	// enable channel 1
-	do {
+	/*do {
 		stbus = VL53L0x_Init(&I2CLasers, &LaserBackRight);
-	} while (!stbus);				// init laser back right
+	} while (!stbus);	*/			// init laser back right
 	do {
 		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH2);
 	} while (!stbus);	// enable channel 2
-	do {
+	/*do {
 		stbus = VL53L0x_Init(&I2CLasers, &LaserMidRight);
-	} while (!stbus);				// init laser mid right
+	} while (!stbus);		*/		// init laser mid right
 	do {
 		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH3);
 	} while (!stbus);	// enable channel 3
-	do {
+	/*do {
 		stbus = VL53L0x_Init(&I2CLasers, &LaserFrontRight);
-	} while (!stbus);				// init laser front right
+	} while (!stbus);	*/			// init laser front right
 	do {
 		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH4);
 	} while (!stbus);	// enable channel 4
-	do {
+	/*do {
 		stbus = VL53L0x_Init(&I2CLasers, &LaserFrontLeft);
-	} while (!stbus);				// init laser front left
+	} while (!stbus);	*/			// init laser front left
 	do {
 		stbus = TCA9548A_SetChannels(&I2CLasers, &tca9548, TCA9548A_CH5);
 	} while (!stbus);	// enable channel 5
-	do {
+	/*do {
 		stbus = VL53L0x_Init(&I2CLasers, &LaserMidLeft);
-	} while (!stbus);				// init laser mid left
-	do {
+	} while (!stbus);*/				// init laser mid left
+	/*do {
 		stbus = ADXL345_Init(&I2CSensors, &adxl345);
 	} while (!stbus);			// init accelerometer pass
 	do {
@@ -273,7 +261,7 @@ int main(void) {
 		stbus = BME280_Init(&I2CSensors, &bme280);
 	} while (!stbus);				// init ambient sensor pass
 
-	FusionAhrsInitialise(&ahrs);
+	FusionAhrsInitialise(&ahrs);*/
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -502,9 +490,10 @@ int main(void) {
 				DisableOption(DevicesEnableMask, INA_REQ_MASK);
 			}
 		}*/
-
-		Drive.WL.speedSP = WheelSpeedZeroLimiter(Drive.WL.speedSP, Drive.SP.pwmLeft, 1.0, 2.0);
-		Drive.WR.speedSP = WheelSpeedZeroLimiter(Drive.WR.speedSP, Drive.SP.pwmRight, 1.0, 2.0);
+		Drive.SP.pwmLeft = 80;
+		Drive.SP.pwmRight = 80;
+		Drive.WL.speedSP = WheelSpeedZeroLimiter(Drive.WL.speedSP, Drive.SP.pwmLeft, 20.0, 25.0);
+		Drive.WR.speedSP = WheelSpeedZeroLimiter(Drive.WR.speedSP, Drive.SP.pwmRight, 20.0, 25.0);
 		WheelForward(Drive_A1_GPIO_Port, Drive_A1_Pin, Drive_A2_Pin);
 		WheelForward(Drive_B1_GPIO_Port, Drive_B1_Pin, Drive_B2_Pin);
 
